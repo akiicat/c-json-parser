@@ -1,0 +1,22 @@
+{
+    "_id": "$id$",
+    "index": 0,
+    "guid": "$guid$",
+    "isActive": true,
+    "balance": "$balance$",
+    "age": 31,
+    "eyeColor": "$eyeColor$",
+    "name": "$name$",
+    "gender": "female",
+    "company": "$company$",
+    "email": "jodychen@electonic.com",
+    "phone": "+1 (915) 545-2447",
+    "friends": [
+      {
+        "id": 0,
+        "name": "Myers Chandler"
+      }
+    ],
+    "greeting": "Hello, Jody Chen! You have 3 unread messages.",
+    "favoriteFruit": "banana"
+  }
