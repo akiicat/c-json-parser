@@ -38,8 +38,6 @@ struct Token {
     char *text;
 };
 
-#define DEFAULT_TOKEN_CAPACITY 128
-
 struct LexerContext {
     unsigned int tokenLength;
     unsigned int tokenCapacity;
@@ -50,7 +48,6 @@ struct LexerContext {
     unsigned int row;
     FILE *stream;
 };
-
 
 int nextChar(struct LexerContext *ctx) {
     if (!ctx->stream) {
@@ -102,12 +99,13 @@ void insertToken(struct LexerContext *ctx, struct Token t) {
     struct Token *oldTokenList = NULL;
     unsigned int oldTokenSize = 0;
     unsigned int newTokenSize = 0;
+    unsigned int textSize = 0;
     int error = 0;
 
     // set default token list
     if (!ctx->tokenList) {
-        ctx->tokenList = (struct Token *)malloc(sizeof(struct Token) * DEFAULT_TOKEN_CAPACITY); 
-        ctx->tokenCapacity = DEFAULT_TOKEN_CAPACITY;
+        ctx->tokenList = (struct Token *)malloc(sizeof(struct Token) * 1); 
+        ctx->tokenCapacity = 1;
     }
 
     // double token list if full, time complexity O(3n)
@@ -115,6 +113,7 @@ void insertToken(struct LexerContext *ctx, struct Token t) {
         oldTokenSize = sizeof(struct Token) * ctx->tokenCapacity;
         newTokenSize = oldTokenSize * 2;
 
+        oldTokenList = ctx->tokenList;
         ctx->tokenList = (struct Token *)malloc(newTokenSize);
         memcpy(ctx->tokenList, oldTokenList, oldTokenSize);
 
@@ -131,8 +130,10 @@ void insertToken(struct LexerContext *ctx, struct Token t) {
         assert(0);
     }
 
-    t.text = malloc(t.end - t.start + 2);
-    fread (t.text, t.end - t.start + 1, 1, ctx->stream);
+    textSize = t.end - t.start + 1;
+    t.text = malloc(textSize + 1);
+    fread(t.text, textSize, 1, ctx->stream);
+    t.text[textSize] = '\0';
     
     error = fseek(ctx->stream, ctx->offset, SEEK_SET);
     if (error) {
