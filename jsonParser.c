@@ -237,9 +237,6 @@ struct valueToken valueRule(struct ParserContext *ctx) {
 }
 
 struct pairToken pairRule(struct ParserContext *ctx) {
-
-    printf("@%d key %d:%d %s\n", ctx->tokenIndex, ctx->tokenList[ctx->tokenIndex].column, ctx->tokenList[ctx->tokenIndex].row, ctx->tokenList[ctx->tokenIndex].text);
-
     struct pairToken pair = {
         .type = PAIR,
         .key = ctx->tokenList[ctx->tokenIndex],
