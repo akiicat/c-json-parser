@@ -15,4 +15,48 @@ struct Token {
     char *text;
 };
 
+struct BaseToken {
+    enum TokenType type;
+};
+
+struct objToken {
+    enum TokenType type;
+    int pairLength;
+    int pairCapacity;
+    struct pairToken *pairList;
+};
+
+struct arrToken {
+    enum TokenType type;
+    int valueLength;
+    int valueCapacity;
+    struct valueToken *valueList;
+};
+
+struct valueToken {
+    enum TokenType type;
+    union {
+        struct BaseToken next;
+        struct Token anyToken;
+        struct Token stringToken;
+        struct Token numberToken;
+        struct Token trueToken;
+        struct Token falseToken;
+        struct Token nullToken;
+        struct objToken obj;
+        struct arrToken arr;
+    };
+};
+
+struct pairToken {
+    enum TokenType type;
+    struct Token key;
+    struct valueToken value;
+};
+
+struct jsonToken {
+    enum TokenType type;
+    struct valueToken value;
+};
+
 #endif
