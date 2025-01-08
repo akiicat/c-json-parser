@@ -125,11 +125,11 @@ void matchToken(struct ParserContext *ctx, enum TokenType t) {
 }
 
 enum TokenType LAToken(struct ParserContext *ctx, int n) {
-    if (ctx->tokenIndex + n < 0) {
+    unsigned int LAIndex = ctx->tokenIndex + n;
+
+    if (LAIndex >= ctx->tokenLength) {
         return T_MISSING;
     }
-
-    int LAIndex = ctx->tokenIndex + n;
 
     return ctx->tokenList[LAIndex].type;
 }

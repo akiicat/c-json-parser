@@ -4,7 +4,7 @@
 #include "token.h"
 
 struct ParserContext {
-    int tokenIndex;
+    unsigned int tokenIndex;
     unsigned int tokenLength;
     struct Token *tokenList;
     struct jsonToken json;
