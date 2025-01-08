@@ -212,10 +212,13 @@ void getTokenCOLON(struct LexerContext *ctx) {
 }
 
 void getTokenSTRING(struct LexerContext *ctx) {
-    unsigned int start = ctx->offset;
+    unsigned int start = 0;
+    unsigned int end = 0;
     unsigned int startRow = ctx->row;
 
     match(ctx, '"');
+
+    start = ctx->offset;
 
     // '"' (~["\r\n] | '\\' . ) * '"'
     while (!(lookahead(ctx, '"') || lookahead(ctx, '\r') || lookahead(ctx, '\r') || lookahead(ctx, EOF))) {
@@ -223,13 +226,15 @@ void getTokenSTRING(struct LexerContext *ctx) {
         nextChar(ctx);
     }
 
+    end = ctx->offset;
+
     match(ctx, '"');
 
     insertToken(ctx, (struct Token) {
         .type = T_STRING,
         .index = ctx->tokenLength,
         .start = start,
-        .end = ctx->offset - 1,
+        .end = end - 1,
         .column = ctx->column,
         .row = startRow,
     });
