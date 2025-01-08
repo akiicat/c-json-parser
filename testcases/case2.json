@@ -1,0 +1,1 @@
+{ "name":"John", "details": { "age":30, "city": { "name": "New York", "population": { "year_2023": 8000000, "year_2022": 7900000 }}}}

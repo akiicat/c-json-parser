@@ -1,5 +1,6 @@
 build:
-	gcc -Wall -g -rdynamic main.c jsonLexer.c jsonParser.c debug.c
+	gcc -Wall -g -rdynamic main.c jsonLexer.c jsonParser.c jsonListener.c debug.c
 
 run:
 	./a.out testcases/case1.json
+	./a.out testcases/case2.json
