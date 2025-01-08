@@ -3,8 +3,6 @@
 
 #include "token.h"
 
-struct ParserContext;
-
 struct ParserContext {
     int tokenIndex;
     unsigned int tokenLength;
