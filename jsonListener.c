@@ -9,7 +9,7 @@
 #include "jsonListener.h"
 #include "token.h"
 
-void pushPathToken(struct jsonWalkerContext *ctx, struct BaseToken *token) {
+void pushPathToken(struct WalkerContext *ctx, struct BaseToken *token) {
     struct BaseToken **oldPath = NULL;
     unsigned int oldPathSize = 0;
     unsigned int newPathSize = 0;
@@ -38,7 +38,7 @@ void pushPathToken(struct jsonWalkerContext *ctx, struct BaseToken *token) {
     ctx->path[ctx->pathLength++] = token;
 }
 
-struct BaseToken *popPathToken(struct jsonWalkerContext *ctx) {
+struct BaseToken *popPathToken(struct WalkerContext *ctx) {
     struct BaseToken **oldPath = NULL;
     unsigned int oldPathSize = 0;
     unsigned int newPathSize = 0;
@@ -74,8 +74,8 @@ struct BaseToken *popPathToken(struct jsonWalkerContext *ctx) {
     return token;
 }
 
-void jsonWalkerNode(struct jsonWalkerContext *ctx, struct BaseToken *token) {
-    struct jsonListener *listener = &ctx->listener;
+void jsonWalkerNode(struct WalkerContext *ctx, struct BaseToken *token) {
+    struct Listener *listener = &ctx->listener;
 
     pushPathToken(ctx, token);
 
@@ -158,6 +158,6 @@ void jsonWalkerNode(struct jsonWalkerContext *ctx, struct BaseToken *token) {
     popPathToken(ctx);
 }
 
-void jsonWalker(struct jsonWalkerContext *ctx) {
+void jsonWalker(struct WalkerContext *ctx) {
     jsonWalkerNode(ctx, ctx->entry);
 }

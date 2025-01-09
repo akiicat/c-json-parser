@@ -4,34 +4,34 @@
 #include "jsonListener.h"
 #include "token.h"
 
-void enterJson(struct jsonWalkerContext *ctx, struct jsonToken *token) {
+void enterJson(struct WalkerContext *ctx, struct jsonToken *token) {
 }
 
-void exitJson(struct jsonWalkerContext *ctx, struct jsonToken *token) {
+void exitJson(struct WalkerContext *ctx, struct jsonToken *token) {
 }
 
-void enterObj(struct jsonWalkerContext *ctx, struct objToken *token) {
+void enterObj(struct WalkerContext *ctx, struct objToken *token) {
 }
 
-void exitObj(struct jsonWalkerContext *ctx, struct objToken *token) {
+void exitObj(struct WalkerContext *ctx, struct objToken *token) {
 }
 
-void enterArr(struct jsonWalkerContext *ctx, struct arrToken *token) {
+void enterArr(struct WalkerContext *ctx, struct arrToken *token) {
 }
 
-void exitArr(struct jsonWalkerContext *ctx, struct arrToken *token) {
+void exitArr(struct WalkerContext *ctx, struct arrToken *token) {
 }
 
-void enterValue(struct jsonWalkerContext *ctx, struct valueToken *token) {
+void enterValue(struct WalkerContext *ctx, struct valueToken *token) {
 }
 
-void exitValue(struct jsonWalkerContext *ctx, struct valueToken *token) {
+void exitValue(struct WalkerContext *ctx, struct valueToken *token) {
 }
 
-void enterPair(struct jsonWalkerContext *ctx, struct pairToken *token) {
+void enterPair(struct WalkerContext *ctx, struct pairToken *token) {
 }
 
-void exitPair(struct jsonWalkerContext *ctx, struct pairToken *token) {
+void exitPair(struct WalkerContext *ctx, struct pairToken *token) {
     if (token->value.next.type != ARR && token->value.next.type != OBJ) {
         printf("%u:%u ", token->key.column, token->key.row);
 
@@ -85,7 +85,7 @@ int main(int argc, char *argv[]) {
     jsonParser(&parser_ctx);
     printTree(&parser_ctx);
 
-    struct jsonWalkerContext walker_ctx =  {
+    struct WalkerContext walker_ctx =  {
         .entry = (struct BaseToken *)&parser_ctx.json,
         .listener = {
             // .enterJson = enterJson,

@@ -5,17 +5,17 @@
 #include "jsonParser.h"
 #include <stddef.h>
 
-struct jsonWalkerContext;
+struct WalkerContext;
 
-typedef void (*anyListenerCallback) (struct jsonWalkerContext *ctx, struct BaseToken *token);
+typedef void (*anyListenerCallback) (struct WalkerContext *ctx, struct BaseToken *token);
 
-typedef void (*jsonListenerCallback) (struct jsonWalkerContext *ctx, struct jsonToken *token);
-typedef void (*objListenerCallback) (struct jsonWalkerContext *ctx, struct objToken *token);
-typedef void (*arrListenerCallback) (struct jsonWalkerContext *ctx, struct arrToken *token);
-typedef void (*valueListenerCallback) (struct jsonWalkerContext *ctx, struct valueToken *token);
-typedef void (*pairListenerCallback) (struct jsonWalkerContext *ctx, struct pairToken *token);
+typedef void (*jsonListenerCallback) (struct WalkerContext *ctx, struct jsonToken *token);
+typedef void (*objListenerCallback) (struct WalkerContext *ctx, struct objToken *token);
+typedef void (*arrListenerCallback) (struct WalkerContext *ctx, struct arrToken *token);
+typedef void (*valueListenerCallback) (struct WalkerContext *ctx, struct valueToken *token);
+typedef void (*pairListenerCallback) (struct WalkerContext *ctx, struct pairToken *token);
 
-struct jsonListener {
+struct Listener {
     jsonListenerCallback enterJson;
     jsonListenerCallback exitJson;
 
@@ -32,14 +32,14 @@ struct jsonListener {
     pairListenerCallback exitPair;
 };
 
-struct jsonWalkerContext {
-    struct jsonListener listener;
+struct WalkerContext {
+    struct Listener listener;
     struct BaseToken *entry;
     struct BaseToken **path;
     unsigned int pathLength;
     unsigned int pathCapacity;
 };
 
-void jsonWalker(struct jsonWalkerContext *ctx);
+void jsonWalker(struct WalkerContext *ctx);
 
 #endif
