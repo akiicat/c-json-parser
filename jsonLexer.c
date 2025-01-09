@@ -89,7 +89,7 @@ void insertToken(struct LexerContext *ctx, struct Token t) {
     }
 
     textSize = t.end - t.start + 1;
-    t.text = malloc(textSize + 1);
+    t.text = (char *)malloc(textSize + 1);
     fread(t.text, textSize, 1, ctx->stream);
     t.text[textSize] = '\0';
     
@@ -108,9 +108,9 @@ void printToken(struct LexerContext *ctx) {
     for (int i = 0; i < ctx->tokenLength; i++) {
         t = ctx->tokenList[i];
         if (t.text) {
-            printf("@%u#%u:%u<%u>%u:%u %s\n", t.index, t.start, t.end, t.type, t.column, t.row, t.text);
+            printf("@%u#%u,%u<%u|%s>%u:%u %s\n", t.index, t.start, t.end, t.type, type2str(t.type), t.column, t.row, t.text);
         } else {
-            printf("@%u#%u:%u<%u>%u:%u\n", t.index, t.start, t.end, t.type, t.column, t.row);
+            printf("@%u#%u,%u<%u|%s>%u:%u\n", t.index, t.start, t.end, t.type, type2str(t.type), t.column, t.row);
         }
     }
 }

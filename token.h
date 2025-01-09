@@ -2,7 +2,7 @@
 #define __TOKEN_H__
 
 enum TokenType {
-    T_MISSING, T_STRING, T_NUMBER, T_COMMA, T_COLON, T_LPAIR, T_RPAIR, T_LARRAY, T_RARRAY, T_TRUE, T_FALSE, T_NULL, VALUE, PAIR, OBJ, ARR, JSON
+    T_MISSING, T_STRING, T_NUMBER, T_COMMA, T_COLON, T_LPAIR, T_RPAIR, T_LARRAY, T_RARRAY, T_TRUE, T_FALSE, T_NULL, VALUE, PAIR, OBJ, ARR, JSON, TOKEN_SIZE
 };
 
 struct Token {
@@ -58,5 +58,7 @@ struct jsonToken {
     enum TokenType type;
     struct valueToken value;
 };
+
+const char *type2str(enum TokenType type);
 
 #endif
