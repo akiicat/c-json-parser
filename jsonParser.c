@@ -15,6 +15,11 @@ void printTreeNode(struct ParserContext *ctx, struct BaseToken *token) {
 
     switch (token->type) {
         case T_STRING:
+        {
+            struct Token *t = (struct Token *)token;
+            printf("\"%s\"", t->text);
+            break;
+        }
         case T_NUMBER:
         case T_TRUE:
         case T_FALSE:
