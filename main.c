@@ -65,9 +65,7 @@ int main(int argc, char *argv[]) {
     }
 
     struct LexerContext lexer_ctx = {
-        .tokenLength = 0,
-        .tokenCapacity = 0,
-        .tokenList = NULL,
+        .container = initTokenContainer(),
         .currentChar = '\0',
         .offset = 0,
         .column = 1,
@@ -79,8 +77,7 @@ int main(int argc, char *argv[]) {
 
     struct ParserContext parser_ctx = {
         .tokenIndex = 0,
-        .tokenLength = lexer_ctx.tokenLength,
-        .tokenList = lexer_ctx.tokenList,
+        .container = lexer_ctx.container,
     };
     jsonParser(&parser_ctx);
     printTree(&parser_ctx);

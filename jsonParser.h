@@ -5,8 +5,7 @@
 
 struct ParserContext {
     unsigned int tokenIndex;
-    unsigned int tokenLength;
-    struct Token *tokenList;
+    struct TokenContainer *container;
     struct jsonToken json;
 };
 

@@ -116,14 +116,14 @@ void matchToken(struct ParserContext *ctx, enum TokenType t) {
     // always get next token before checking
     nextToken(ctx);
 
-    if (index < 0 || index >= ctx->tokenLength) {
+    if (index < 0 || index >= ctx->container->tokenLength) {
         fprintf(stderr, "Error Token Index: %d\n", index);
         print_trace();
         assert(0);
     }
 
-    if (ctx->tokenList[index].type != t) {
-        fprintf(stderr, "Syntax Error: Unexpected Token: <%d> expect <%d>\n", ctx->tokenList[index].type, t);
+    if (ctx->container->tokenList[index].type != t) {
+        fprintf(stderr, "Syntax Error: Unexpected Token: <%d> expect <%d>\n", ctx->container->tokenList[index].type, t);
         print_trace();
         assert(0);
     }
@@ -132,11 +132,11 @@ void matchToken(struct ParserContext *ctx, enum TokenType t) {
 enum TokenType LAToken(struct ParserContext *ctx, int n) {
     unsigned int LAIndex = ctx->tokenIndex + n;
 
-    if (LAIndex >= ctx->tokenLength) {
+    if (LAIndex >= ctx->container->tokenLength) {
         return T_MISSING;
     }
 
-    return ctx->tokenList[LAIndex].type;
+    return ctx->container->tokenList[LAIndex].type;
 }
 
 bool checknLAToken(struct ParserContext *ctx, int n, enum TokenType t) {
@@ -220,23 +220,23 @@ struct valueToken valueRule(struct ParserContext *ctx) {
         value.arr = arrRule(ctx);
     }
     else if (checkLAToken(ctx, T_STRING)) {
-        value.stringToken = ctx->tokenList[ctx->tokenIndex];
+        value.stringToken = ctx->container->tokenList[ctx->tokenIndex];
         matchToken(ctx, T_STRING);
     }
     else if (checkLAToken(ctx, T_NUMBER)) {
-        value.numberToken = ctx->tokenList[ctx->tokenIndex];
+        value.numberToken = ctx->container->tokenList[ctx->tokenIndex];
         matchToken(ctx, T_NUMBER);
     }
     else if (checkLAToken(ctx, T_TRUE)) {
-        value.trueToken = ctx->tokenList[ctx->tokenIndex];
+        value.trueToken = ctx->container->tokenList[ctx->tokenIndex];
         matchToken(ctx, T_TRUE);
     }
     else if (checkLAToken(ctx, T_FALSE)) {
-        value.falseToken = ctx->tokenList[ctx->tokenIndex];
+        value.falseToken = ctx->container->tokenList[ctx->tokenIndex];
         matchToken(ctx, T_FALSE);
     }
     else if (checkLAToken(ctx, T_NULL)) {
-        value.nullToken = ctx->tokenList[ctx->tokenIndex];
+        value.nullToken = ctx->container->tokenList[ctx->tokenIndex];
         matchToken(ctx, T_NULL);
     }
     else {
@@ -251,7 +251,7 @@ struct valueToken valueRule(struct ParserContext *ctx) {
 struct pairToken pairRule(struct ParserContext *ctx) {
     struct pairToken pair = {
         .type = PAIR,
-        .key = ctx->tokenList[ctx->tokenIndex],
+        .key = ctx->container->tokenList[ctx->tokenIndex],
     };
 
     // member : STRING ':' value ;

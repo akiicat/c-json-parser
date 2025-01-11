@@ -6,9 +6,7 @@
 #include "token.h"
 
 struct LexerContext {
-    unsigned int tokenLength;
-    unsigned int tokenCapacity;
-    struct Token *tokenList;
+    struct TokenContainer *container;
     int currentChar;
     unsigned int offset;
     unsigned int column;

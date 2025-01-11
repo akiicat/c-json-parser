@@ -5,14 +5,23 @@ enum TokenType {
     T_MISSING, T_STRING, T_NUMBER, T_COMMA, T_COLON, T_LPAIR, T_RPAIR, T_LARRAY, T_RARRAY, T_TRUE, T_FALSE, T_NULL, VALUE, PAIR, OBJ, ARR, JSON, TOKEN_SIZE
 };
 
+struct TokenContainer;
+
 struct Token {
     enum TokenType type;
+    struct TokenContainer *container;
     unsigned int index;
     unsigned int start;
     unsigned int end;
     unsigned int column;
     unsigned int row;
     char *text;
+};
+
+struct TokenContainer {
+    unsigned int tokenLength;
+    unsigned int tokenCapacity;
+    struct Token *tokenList;
 };
 
 struct BaseToken {
@@ -60,5 +69,6 @@ struct jsonToken {
 };
 
 const char *type2str(enum TokenType type);
+struct TokenContainer *initTokenContainer();
 
 #endif

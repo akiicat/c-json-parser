@@ -1,4 +1,5 @@
 #include <stddef.h>
+#include <stdlib.h>
 
 #include "token.h"
 
@@ -28,4 +29,16 @@ const char *type2str(enum TokenType type) {
     }
 
     return NULL;
+}
+
+struct TokenContainer *initTokenContainer() {
+    struct TokenContainer *container = (struct TokenContainer *)malloc(sizeof(struct TokenContainer));
+
+    *container = (struct TokenContainer) {
+        .tokenLength = 0,
+        .tokenCapacity = 0,
+        .tokenList = NULL,
+    };
+
+    return container;
 }

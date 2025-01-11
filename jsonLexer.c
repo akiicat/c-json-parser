@@ -60,25 +60,31 @@ void insertToken(struct LexerContext *ctx, struct Token t) {
     unsigned int textSize = 0;
     int error = 0;
 
+    if (!ctx->container) {
+        fprintf(stderr, "Error Token Container is not initialized\n");
+        print_trace();
+        assert(0);
+    }
+
     // set default token list
-    if (!ctx->tokenList) {
-        ctx->tokenList = (struct Token *)malloc(sizeof(struct Token) * 1); 
-        ctx->tokenCapacity = 1;
+    if (!ctx->container->tokenList) {
+        ctx->container->tokenList = (struct Token *)malloc(sizeof(struct Token) * 1); 
+        ctx->container->tokenCapacity = 1;
     }
 
     // double token list if full, time complexity O(3n)
-    if (ctx->tokenLength >= ctx->tokenCapacity) {
-        oldTokenSize = sizeof(struct Token) * ctx->tokenCapacity;
+    if (ctx->container->tokenLength >= ctx->container->tokenCapacity) {
+        oldTokenSize = sizeof(struct Token) * ctx->container->tokenCapacity;
         newTokenSize = oldTokenSize * 2;
 
-        oldTokenList = ctx->tokenList;
-        ctx->tokenList = (struct Token *)malloc(newTokenSize);
-        memcpy(ctx->tokenList, oldTokenList, oldTokenSize);
+        oldTokenList = ctx->container->tokenList;
+        ctx->container->tokenList = (struct Token *)malloc(newTokenSize);
+        memcpy(ctx->container->tokenList, oldTokenList, oldTokenSize);
 
         free(oldTokenList);
         oldTokenList = NULL;
 
-        ctx->tokenCapacity *= 2;
+        ctx->container->tokenCapacity *= 2;
     }
 
     error = fseek(ctx->stream, t.start-1, SEEK_SET);
@@ -100,13 +106,17 @@ void insertToken(struct LexerContext *ctx, struct Token t) {
         assert(0);
     }
 
-    ctx->tokenList[ctx->tokenLength++] = t;
+    t.container = ctx->container;
+    t.index = ctx->container->tokenLength;
+
+    ctx->container->tokenList[ctx->container->tokenLength] = t;
+    ctx->container->tokenLength++;
 }
 
 void printToken(struct LexerContext *ctx) {
     struct Token t;
-    for (int i = 0; i < ctx->tokenLength; i++) {
-        t = ctx->tokenList[i];
+    for (int i = 0; i < ctx->container->tokenLength; i++) {
+        t = ctx->container->tokenList[i];
         if (t.text) {
             printf("@%u#%u,%u<%u|%s>%u:%u %s\n", t.index, t.start, t.end, t.type, type2str(t.type), t.column, t.row, t.text);
         } else {
@@ -123,7 +133,6 @@ void getTokenLPAIR(struct LexerContext *ctx) {
 
     insertToken(ctx, (struct Token) {
         .type = T_LPAIR,
-        .index = ctx->tokenLength,
         .start = start,
         .end = ctx->offset - 1,
         .column = ctx->column,
@@ -139,7 +148,6 @@ void getTokenRPAIR(struct LexerContext *ctx) {
 
     insertToken(ctx, (struct Token) {
         .type = T_RPAIR,
-        .index = ctx->tokenLength,
         .start = start,
         .end = ctx->offset - 1,
         .column = ctx->column,
@@ -155,7 +163,6 @@ void getTokenLARRAY(struct LexerContext *ctx) {
 
     insertToken(ctx, (struct Token) {
         .type = T_LARRAY,
-        .index = ctx->tokenLength,
         .start = start,
         .end = ctx->offset - 1,
         .column = ctx->column,
@@ -171,7 +178,6 @@ void getTokenRARRAY(struct LexerContext *ctx) {
 
     insertToken(ctx, (struct Token) {
         .type = T_RARRAY,
-        .index = ctx->tokenLength,
         .start = start,
         .end = ctx->offset - 1,
         .column = ctx->column,
@@ -187,7 +193,6 @@ void getTokenCOMMA(struct LexerContext *ctx) {
 
     insertToken(ctx, (struct Token) {
         .type = T_COMMA,
-        .index = ctx->tokenLength,
         .start = start,
         .end = ctx->offset - 1,
         .column = ctx->column,
@@ -203,7 +208,6 @@ void getTokenCOLON(struct LexerContext *ctx) {
 
     insertToken(ctx, (struct Token) {
         .type = T_COLON,
-        .index = ctx->tokenLength,
         .start = start,
         .end = ctx->offset - 1,
         .column = ctx->column,
@@ -232,7 +236,6 @@ void getTokenSTRING(struct LexerContext *ctx) {
 
     insertToken(ctx, (struct Token) {
         .type = T_STRING,
-        .index = ctx->tokenLength,
         .start = start,
         .end = end - 1,
         .column = ctx->column,
@@ -252,7 +255,6 @@ void getTokenNUMBER(struct LexerContext *ctx) {
 
     insertToken(ctx, (struct Token) {
         .type = T_NUMBER,
-        .index = ctx->tokenLength,
         .start = start,
         .end = ctx->offset - 1,
         .column = ctx->column,
@@ -268,7 +270,6 @@ void getTokenTRUE(struct LexerContext *ctx) {
 
     insertToken(ctx, (struct Token) {
         .type = T_TRUE,
-        .index = ctx->tokenLength,
         .start = start,
         .end = ctx->offset - 1,
         .column = ctx->column,
@@ -284,7 +285,6 @@ void getTokenFALSE(struct LexerContext *ctx) {
 
     insertToken(ctx, (struct Token) {
         .type = T_FALSE,
-        .index = ctx->tokenLength,
         .start = start,
         .end = ctx->offset - 1,
         .column = ctx->column,
@@ -300,7 +300,6 @@ void getTokenNULL(struct LexerContext *ctx) {
 
     insertToken(ctx, (struct Token) {
         .type = T_NULL,
-        .index = ctx->tokenLength,
         .start = start,
         .end = ctx->offset - 1,
         .column = ctx->column,
