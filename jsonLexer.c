@@ -316,33 +316,46 @@ void jsonLexer(struct LexerContext *ctx) {
 
         if (lookahead(ctx, '{')) {
             getTokenLPAIR(ctx);
-        } else if (lookahead(ctx, '}')) {
+        }
+        else if (lookahead(ctx, '}')) {
             getTokenRPAIR(ctx);
-        } else if (lookahead(ctx, '[')) {
+        }
+        else if (lookahead(ctx, '[')) {
             getTokenLARRAY(ctx);
-        } else if (lookahead(ctx, ']')) {
+        }
+        else if (lookahead(ctx, ']')) {
             getTokenRARRAY(ctx);
-        } else if (lookahead(ctx, ',')) {
+        }
+        else if (lookahead(ctx, ',')) {
             getTokenCOMMA(ctx);
-        } else if (lookahead(ctx, ':')) {
+        }
+        else if (lookahead(ctx, ':')) {
             getTokenCOLON(ctx);
-        } else if (lookahead(ctx, '"')) {
+        }
+        else if (lookahead(ctx, '"')) {
             getTokenSTRING(ctx);
-        } else if (lookahead(ctx, '-') || lookahead(ctx, '0') || lookahead(ctx, '1') || lookahead(ctx, '2') || lookahead(ctx, '3') || lookahead(ctx, '4') ||
+        }
+        else if (lookahead(ctx, '-') || lookahead(ctx, '0') || lookahead(ctx, '1') || lookahead(ctx, '2') || lookahead(ctx, '3') || lookahead(ctx, '4') ||
                     lookahead(ctx, '5') || lookahead(ctx, '6') || lookahead(ctx, '7') || lookahead(ctx, '8') || lookahead(ctx, '9')) {
             getTokenNUMBER(ctx);
-        } else if (lookahead(ctx, 't')) {
+        }
+        else if (lookahead(ctx, 't')) {
             getTokenTRUE(ctx);
-        } else if (lookahead(ctx, 'f')) {
+        }
+        else if (lookahead(ctx, 'f')) {
             getTokenFALSE(ctx);
-        } else if (lookahead(ctx, 'n')) {
+        }
+        else if (lookahead(ctx, 'n')) {
             getTokenNULL(ctx);
-        } else if (matchIfExist(ctx, '\n')) { // only match "\n", should consider these cases "\r\n" "\r"
+        }
+        else if (matchIfExist(ctx, '\n')) { // only match "\n", should consider these cases "\r\n" "\r"
             ctx->column++;
             ctx->row = 1;
-        } else if (matchIfExist(ctx, ' ') || matchIfExist(ctx, '\t')) {
+        }
+        else if (matchIfExist(ctx, ' ') || matchIfExist(ctx, '\t')) {
             continue;
-        } else {
+        }
+        else {
             match(ctx, EOF); // error
         }
     }

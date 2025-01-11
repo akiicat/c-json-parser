@@ -215,24 +215,31 @@ struct valueToken valueRule(struct ParserContext *ctx) {
     // value : obj | arr | STRING | NUMBER | 'true' | 'false' | 'null' ;
     if (checkLAToken(ctx, T_LPAIR)) {
         value.obj = objRule(ctx);
-    } else if (checkLAToken(ctx, T_LARRAY)) {
+    }
+    else if (checkLAToken(ctx, T_LARRAY)) {
         value.arr = arrRule(ctx);
-    } else if (checkLAToken(ctx, T_STRING)) {
+    }
+    else if (checkLAToken(ctx, T_STRING)) {
         value.stringToken = ctx->tokenList[ctx->tokenIndex];
         matchToken(ctx, T_STRING);
-    } else if (checkLAToken(ctx, T_NUMBER)) {
+    }
+    else if (checkLAToken(ctx, T_NUMBER)) {
         value.numberToken = ctx->tokenList[ctx->tokenIndex];
         matchToken(ctx, T_NUMBER);
-    } else if (checkLAToken(ctx, T_TRUE)) {
+    }
+    else if (checkLAToken(ctx, T_TRUE)) {
         value.trueToken = ctx->tokenList[ctx->tokenIndex];
         matchToken(ctx, T_TRUE);
-    } else if (checkLAToken(ctx, T_FALSE)) {
+    }
+    else if (checkLAToken(ctx, T_FALSE)) {
         value.falseToken = ctx->tokenList[ctx->tokenIndex];
         matchToken(ctx, T_FALSE);
-    } else if (checkLAToken(ctx, T_NULL)) {
+    }
+    else if (checkLAToken(ctx, T_NULL)) {
         value.nullToken = ctx->tokenList[ctx->tokenIndex];
         matchToken(ctx, T_NULL);
-    } else {
+    }
+    else {
         print_trace();
         assert(0);
         // Syntax Error: Unexpected Token
