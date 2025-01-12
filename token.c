@@ -42,3 +42,25 @@ struct TokenContainer *initTokenContainer() {
 
     return container;
 }
+
+void freeTokenContainer(struct TokenContainer *container) {
+    char *text = NULL;
+
+    if (!container->tokenList) {
+        return;
+    }
+
+    while (container->tokenLength > 0) {
+        container->tokenLength--;
+
+        text = container->tokenList[container->tokenLength].text;
+        container->tokenList[container->tokenLength].text = NULL;
+
+        if (text) {
+            free(text);
+            text = NULL;
+        }
+    }
+
+    free(container->tokenList);
+}

@@ -6,7 +6,6 @@
 struct ParserContext {
     unsigned int tokenIndex;
     struct TokenContainer *container;
-    struct jsonToken json;
 };
 
 void jsonParser(struct ParserContext *ctx);

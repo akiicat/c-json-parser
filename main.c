@@ -83,7 +83,7 @@ int main(int argc, char *argv[]) {
     printTree(&parser_ctx);
 
     struct WalkerContext walker_ctx =  {
-        .entry = (struct BaseToken *)&parser_ctx.json,
+        .entry = (struct BaseToken *)&parser_ctx.container->root,
         .listener = {
             // .enterJson = enterJson,
             // .exitJson = exitJson,
@@ -100,6 +100,7 @@ int main(int argc, char *argv[]) {
     jsonWalker(&walker_ctx);
 
     fclose(lexer_ctx.stream);
+    freeTokenContainer(lexer_ctx.container);
 
     return 0;
 }

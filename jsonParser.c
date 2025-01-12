@@ -103,7 +103,7 @@ void printTreeNode(struct ParserContext *ctx, struct BaseToken *token) {
 }
 
 void printTree(struct ParserContext *ctx) {
-    printTreeNode(ctx, (struct BaseToken *)&ctx->json);
+    printTreeNode(ctx, (struct BaseToken *)&ctx->container->root);
 }
 
 void nextToken(struct ParserContext *ctx) {
@@ -174,6 +174,7 @@ void insertPairToken(struct ParserContext *ctx, struct objToken *obj, struct pai
         obj->pairCapacity *= 2;
     }
 
+    pair.container = ctx->container;
     obj->pairList[obj->pairLength++] = pair;
 }
 
@@ -204,12 +205,14 @@ void insertValueToken(struct ParserContext *ctx, struct arrToken *arr, struct va
         arr->valueCapacity *= 2;
     }
 
+    value.container = ctx->container;
     arr->valueList[arr->valueLength++] = value;
 }
 
 struct valueToken valueRule(struct ParserContext *ctx) {
     struct valueToken value = {
         .type = VALUE,
+        .container = ctx->container,
     };
 
     // value : obj | arr | STRING | NUMBER | 'true' | 'false' | 'null' ;
@@ -251,6 +254,7 @@ struct valueToken valueRule(struct ParserContext *ctx) {
 struct pairToken pairRule(struct ParserContext *ctx) {
     struct pairToken pair = {
         .type = PAIR,
+        .container = ctx->container,
         .key = ctx->container->tokenList[ctx->tokenIndex],
     };
 
@@ -267,6 +271,7 @@ struct objToken objRule(struct ParserContext *ctx) {
     struct pairToken pair = {};
     struct objToken obj = {
         .type = OBJ,
+        .container = ctx->container,
     };
 
     // obj : T_LPAIR pair (',' pair)* T_RPAIR | T_LPAIR T_RPAIR;
@@ -291,6 +296,7 @@ struct arrToken arrRule(struct ParserContext *ctx) {
     struct valueToken value = {};
     struct arrToken arr = {
         .type = ARR,
+        .container = ctx->container,
     };
 
     // arr : T_LARRAY value* T_RARRAY ;
@@ -314,6 +320,7 @@ struct arrToken arrRule(struct ParserContext *ctx) {
 struct jsonToken jsonRule(struct ParserContext *ctx) {
     struct jsonToken json = {
         .type = JSON,
+        .container = ctx->container,
     };
 
     // json : value EOF;
@@ -325,5 +332,5 @@ struct jsonToken jsonRule(struct ParserContext *ctx) {
 }
 
 void jsonParser(struct ParserContext *ctx) {
-    ctx->json = jsonRule(ctx);
+    ctx->container->root = jsonRule(ctx);
 }

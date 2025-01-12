@@ -18,18 +18,14 @@ struct Token {
     char *text;
 };
 
-struct TokenContainer {
-    unsigned int tokenLength;
-    unsigned int tokenCapacity;
-    struct Token *tokenList;
-};
-
 struct BaseToken {
     enum TokenType type;
+    struct TokenContainer *container;
 };
 
 struct objToken {
     enum TokenType type;
+    struct TokenContainer *container;
     int pairLength;
     int pairCapacity;
     struct pairToken *pairList;
@@ -37,6 +33,7 @@ struct objToken {
 
 struct arrToken {
     enum TokenType type;
+    struct TokenContainer *container;
     int valueLength;
     int valueCapacity;
     struct valueToken *valueList;
@@ -44,6 +41,7 @@ struct arrToken {
 
 struct valueToken {
     enum TokenType type;
+    struct TokenContainer *container;
     union {
         struct BaseToken next;
         struct Token anyToken;
@@ -59,16 +57,26 @@ struct valueToken {
 
 struct pairToken {
     enum TokenType type;
+    struct TokenContainer *container;
     struct Token key;
     struct valueToken value;
 };
 
 struct jsonToken {
     enum TokenType type;
+    struct TokenContainer *container;
     struct valueToken value;
+};
+
+struct TokenContainer {
+    unsigned int tokenLength;
+    unsigned int tokenCapacity;
+    struct Token *tokenList;
+    struct jsonToken root;
 };
 
 const char *type2str(enum TokenType type);
 struct TokenContainer *initTokenContainer();
+void freeTokenContainer(struct TokenContainer *container);
 
 #endif
