@@ -99,8 +99,10 @@ int main(int argc, char *argv[]) {
     };
     jsonWalker(&walker_ctx);
 
-    fclose(lexer_ctx.stream);
+    freeWalker(&walker_ctx);
+    freeParser(&parser_ctx);
     freeTokenContainer(lexer_ctx.container);
+    fclose(lexer_ctx.stream);
 
     return 0;
 }

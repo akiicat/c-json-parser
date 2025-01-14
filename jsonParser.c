@@ -50,8 +50,10 @@ void printTreeNode(struct ParserContext *ctx, struct BaseToken *token) {
             indent += 4;
             for (int i = 0; i < indent; i++)
                 printf(" ");
-            for (int i = 0; i < arr->valueLength; i++) {
-                printTreeNode(ctx, (struct BaseToken *)&arr->valueList[i]);
+            if (arr->values) {
+                for (int i = 0; i < arr->values->length; i++) {
+                    printTreeNode(ctx, (struct BaseToken *)&arr->values->list[i]);
+                }
             }
             printf("\n");
             indent -= 4;
@@ -67,12 +69,14 @@ void printTreeNode(struct ParserContext *ctx, struct BaseToken *token) {
             indent += 4;
             for (int i = 0; i < indent; i++)
                 printf(" ");
-            for (int i = 0; i < obj->pairLength; i++) {
-                printTreeNode(ctx, (struct BaseToken *)&obj->pairList[i]);
-                if (i + 1 < obj->pairLength) {
-                    printf(",\n");
-                    for (int i = 0; i < indent; i++)
-                        printf(" ");
+            if (obj->pairs) {
+                for (int i = 0; i < obj->pairs->length; i++) {
+                    printTreeNode(ctx, (struct BaseToken *)&obj->pairs->list[i]);
+                    if (i + 1 < obj->pairs->length) {
+                        printf(",\n");
+                        for (int i = 0; i < indent; i++)
+                            printf(" ");
+                    }
                 }
             }
             printf("\n");
@@ -147,68 +151,6 @@ bool checkLAToken(struct ParserContext *ctx, enum TokenType t) {
     return LAToken(ctx, 0) == t;
 }
 
-
-void insertPairToken(struct ParserContext *ctx, struct objToken *obj, struct pairToken pair) {
-    struct pairToken *oldPairList = NULL;
-    unsigned int oldPairSize = 0;
-    unsigned int newPairSize = 0;
-
-    // set default token list
-    if (!obj->pairList) {
-        obj->pairList = (struct pairToken *)malloc(sizeof(struct pairToken)); 
-        obj->pairCapacity = 1;
-    }
-
-    // double token list if full, time complexity O(3n)
-    if (obj->pairLength >= obj->pairCapacity) {
-        oldPairSize = sizeof(struct pairToken) * obj->pairCapacity;
-        newPairSize = oldPairSize * 2;
-
-        oldPairList = obj->pairList;
-        obj->pairList = (struct pairToken *)malloc(newPairSize);
-        memcpy(obj->pairList, oldPairList, oldPairSize);
-
-        free(oldPairList);
-        oldPairList = NULL;
-
-        obj->pairCapacity *= 2;
-    }
-
-    pair.container = ctx->container;
-    obj->pairList[obj->pairLength++] = pair;
-}
-
-
-void insertValueToken(struct ParserContext *ctx, struct arrToken *arr, struct valueToken value) {
-    struct valueToken *oldValueList = NULL;
-    unsigned int oldValueSize = 0;
-    unsigned int newValueSize = 0;
-
-    // set default token list
-    if (!arr->valueList) {
-        arr->valueList = (struct valueToken *)malloc(sizeof(struct valueToken)); 
-        arr->valueCapacity = 1;
-    }
-
-    // double token list if full, time complexity O(3n)
-    if (arr->valueLength >= arr->valueCapacity) {
-        oldValueSize = sizeof(struct valueToken) * arr->valueCapacity;
-        newValueSize = oldValueSize * 2;
-
-        oldValueList = arr->valueList;
-        arr->valueList = (struct valueToken *)malloc(newValueSize);
-        memcpy(arr->valueList, oldValueList, oldValueSize);
-
-        free(oldValueList);
-        oldValueList = NULL;
-
-        arr->valueCapacity *= 2;
-    }
-
-    value.container = ctx->container;
-    arr->valueList[arr->valueLength++] = value;
-}
-
 struct valueToken valueRule(struct ParserContext *ctx) {
     struct valueToken value = {
         .type = VALUE,
@@ -280,7 +222,7 @@ struct objToken objRule(struct ParserContext *ctx) {
     while (!checkLAToken(ctx, T_RPAIR)) {
         pair = pairRule(ctx);
 
-        insertPairToken(ctx, &obj, pair);
+        insertPair(&obj, pair);
 
         if (checkLAToken(ctx, T_COMMA)) {
             matchToken(ctx, T_COMMA);
@@ -305,7 +247,7 @@ struct arrToken arrRule(struct ParserContext *ctx) {
     while (!checkLAToken(ctx, T_RARRAY)) {
         value = valueRule(ctx);
 
-        insertValueToken(ctx, &arr, value);
+        insertValue(&arr, value);
 
         if (checkLAToken(ctx, T_COMMA)) {
             matchToken(ctx, T_COMMA);
@@ -333,4 +275,78 @@ struct jsonToken jsonRule(struct ParserContext *ctx) {
 
 void jsonParser(struct ParserContext *ctx) {
     ctx->container->root = jsonRule(ctx);
+}
+
+void freeParserNode(struct ParserContext *ctx, struct BaseToken *token) {
+    switch (token->type) {
+        case T_STRING:
+        case T_NUMBER:
+        case T_COMMA:
+        case T_COLON:
+        case T_LPAIR:
+        case T_RPAIR:
+        case T_LARRAY:
+        case T_RARRAY:
+        case T_TRUE:
+        case T_FALSE:
+        case T_NULL:
+            break;
+        case VALUE:
+        {
+            struct valueToken *value = (struct valueToken *)token;
+            freeParserNode(ctx, &value->next);
+            break;
+        }
+        case PAIR:
+        {
+            struct pairToken *pair = (struct pairToken *)token;
+            freeParserNode(ctx, &pair->value.next);
+            break;
+        }
+        case ARR:
+        {
+            struct arrToken *arr = (struct arrToken *)token;
+            if (arr->values) {
+                for (int i = 0; i < arr->values->length; i++) {
+                    freeParserNode(ctx, (struct BaseToken *)&arr->values->list[i]);
+                }
+                free(arr->values);
+                arr->values = NULL;
+            }
+            break;
+        }
+        case OBJ:
+        {
+            struct objToken *obj = (struct objToken *)token;
+            if (obj->pairs) {
+                for (int i = 0; i < obj->pairs->length; i++) {
+                    freeParserNode(ctx, (struct BaseToken *)&obj->pairs->list[i]);
+                }
+                free(obj->pairs);
+                obj->pairs = NULL;
+            }
+            break;
+        }
+        case JSON:
+        {
+            struct jsonToken *json = (struct jsonToken *)token;
+            freeParserNode(ctx, &json->value.next);
+            break;
+        }
+        case T_MISSING:
+        {
+            printf("MISSING\n");
+            break;
+        }
+        default:
+        {
+            fprintf(stderr, "Error: Print Token Not found <%d>\n", token->type);
+            print_trace();
+            assert(0);
+        }
+    }
+}
+
+void freeParser(struct ParserContext *ctx) {
+    freeParserNode(ctx, (struct BaseToken *)&ctx->container->root);
 }

@@ -1,11 +1,10 @@
 #ifndef __TOKEN_H__
 #define __TOKEN_H__
 
+#include <stddef.h>
 enum TokenType {
     T_MISSING, T_STRING, T_NUMBER, T_COMMA, T_COLON, T_LPAIR, T_RPAIR, T_LARRAY, T_RARRAY, T_TRUE, T_FALSE, T_NULL, VALUE, PAIR, OBJ, ARR, JSON, TOKEN_SIZE
 };
-
-struct TokenContainer;
 
 struct Token {
     enum TokenType type;
@@ -26,17 +25,13 @@ struct BaseToken {
 struct objToken {
     enum TokenType type;
     struct TokenContainer *container;
-    int pairLength;
-    int pairCapacity;
-    struct pairToken *pairList;
+    struct pairs *pairs;
 };
 
 struct arrToken {
     enum TokenType type;
     struct TokenContainer *container;
-    int valueLength;
-    int valueCapacity;
-    struct valueToken *valueList;
+    struct values *values;
 };
 
 struct valueToken {
@@ -55,11 +50,23 @@ struct valueToken {
     };
 };
 
+struct values {
+    size_t length;
+    size_t capacity;
+    struct valueToken list[];
+};
+
 struct pairToken {
     enum TokenType type;
     struct TokenContainer *container;
     struct Token key;
     struct valueToken value;
+};
+
+struct pairs {
+    size_t length;
+    size_t capacity;
+    struct pairToken list[];
 };
 
 struct jsonToken {
@@ -78,5 +85,11 @@ struct TokenContainer {
 const char *type2str(enum TokenType type);
 struct TokenContainer *initTokenContainer();
 void freeTokenContainer(struct TokenContainer *container);
+
+void insertToken(struct TokenContainer *container, struct Token t);
+void insertPair(struct objToken *obj, struct pairToken pair);
+void insertValue(struct arrToken *arr, struct valueToken value);
+
+struct Token copyToken(struct Token t);
 
 #endif

@@ -10,5 +10,6 @@ struct ParserContext {
 
 void jsonParser(struct ParserContext *ctx);
 void printTree(struct ParserContext *ctx);
+void freeParser(struct ParserContext *ctx);
 
 #endif

@@ -41,5 +41,6 @@ struct WalkerContext {
 };
 
 void jsonWalker(struct WalkerContext *ctx);
+void freeWalker(struct WalkerContext *ctx);
 
 #endif

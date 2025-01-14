@@ -113,8 +113,8 @@ void jsonWalkerNode(struct WalkerContext *ctx, struct BaseToken *token) {
             struct arrToken *arr = (struct arrToken *)token;
             if (listener->enterArr)
                 listener->enterArr(ctx, arr);
-            for (int i = 0; i < arr->valueLength; i++) {
-                jsonWalkerNode(ctx, (struct BaseToken *)&arr->valueList[i]);
+            for (int i = 0; i < arr->values->length; i++) {
+                jsonWalkerNode(ctx, (struct BaseToken *)&arr->values->list[i]);
             }
             if (listener->exitArr)
                 listener->exitArr(ctx, arr);
@@ -125,8 +125,8 @@ void jsonWalkerNode(struct WalkerContext *ctx, struct BaseToken *token) {
             struct objToken *obj = (struct objToken *)token;
             if (listener->enterObj)
                 listener->enterObj(ctx, obj);
-            for (int i = 0; i < obj->pairLength; i++) {
-                jsonWalkerNode(ctx, (struct BaseToken *)&obj->pairList[i]);
+            for (int i = 0; i < obj->pairs->length; i++) {
+                jsonWalkerNode(ctx, (struct BaseToken *)&obj->pairs->list[i]);
             }
             if (listener->exitObj)
                 listener->exitObj(ctx, obj);
@@ -160,4 +160,11 @@ void jsonWalkerNode(struct WalkerContext *ctx, struct BaseToken *token) {
 
 void jsonWalker(struct WalkerContext *ctx) {
     jsonWalkerNode(ctx, ctx->entry);
+}
+
+void freeWalker(struct WalkerContext *ctx) {
+    free(ctx->path);
+    ctx->path = NULL;
+    ctx->pathLength = 0;
+    ctx->pathCapacity = 0;
 }
