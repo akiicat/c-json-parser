@@ -68,8 +68,8 @@ int main(int argc, char *argv[]) {
         .container = initTokenContainer(),
         .currentChar = '\0',
         .offset = 0,
-        .column = 1,
-        .row = 0,
+        .column = 0,
+        .row = 1,
         .stream = stream,
     };
     jsonLexer(&lexer_ctx);

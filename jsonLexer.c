@@ -17,7 +17,7 @@ int nextChar(struct LexerContext *ctx) {
 
     ctx->currentChar = fgetc(ctx->stream);
     ctx->offset = ftell(ctx->stream);
-    ctx->row++;
+    ctx->column++;
     return ctx->currentChar;
 }
 
@@ -32,7 +32,7 @@ void match(struct LexerContext *ctx, int c) {
     nextChar(ctx);
 
     if (curC != c) {
-        fprintf(stderr, "Syntax Error: Unexpected Char: %c\n", curC);
+        fprintf(stderr, "Syntax Error %d:%d: Unexpected Char: %c\n", ctx->row, ctx->column, curC);
         print_trace();
         assert(0);
     }
@@ -86,9 +86,9 @@ void printToken(struct LexerContext *ctx) {
     for (int i = 0; i < ctx->container->tokenLength; i++) {
         t = ctx->container->tokenList[i];
         if (t.text) {
-            printf("@%u#%u,%u<%u|%s>%u:%u %s\n", t.index, t.start, t.end, t.type, type2str(t.type), t.column, t.row, t.text);
+            printf("@%u#%u,%u<%u|%s>%u:%u %s\n", t.index, t.start, t.end, t.type, type2str(t.type), t.row, t.column, t.text);
         } else {
-            printf("@%u#%u,%u<%u|%s>%u:%u\n", t.index, t.start, t.end, t.type, type2str(t.type), t.column, t.row);
+            printf("@%u#%u,%u<%u|%s>%u:%u\n", t.index, t.start, t.end, t.type, type2str(t.type), t.row, t.column);
         }
     }
 }
@@ -96,7 +96,7 @@ void printToken(struct LexerContext *ctx) {
 void getTokenLPAIR(struct LexerContext *ctx) {
     size_t start = ctx->offset;
     size_t end = ctx->offset;
-    size_t startRow = ctx->row;
+    size_t startCol = ctx->column;
 
     match(ctx, '{');
 
@@ -104,8 +104,8 @@ void getTokenLPAIR(struct LexerContext *ctx) {
         .type = T_LPAIR,
         .start = start,
         .end = end,
-        .column = ctx->column,
-        .row = startRow,
+        .column = startCol,
+        .row = ctx->row,
         .text = substring(ctx, start, end),
     });
 }
@@ -113,7 +113,7 @@ void getTokenLPAIR(struct LexerContext *ctx) {
 void getTokenRPAIR(struct LexerContext *ctx) {
     size_t start = ctx->offset;
     size_t end = ctx->offset;
-    size_t startRow = ctx->row;
+    size_t startCol = ctx->column;
 
     match(ctx, '}');
 
@@ -121,8 +121,8 @@ void getTokenRPAIR(struct LexerContext *ctx) {
         .type = T_RPAIR,
         .start = start,
         .end = end,
-        .column = ctx->column,
-        .row = startRow,
+        .column = startCol,
+        .row = ctx->row,
         .text = substring(ctx, start, end),
     });
 }
@@ -130,7 +130,7 @@ void getTokenRPAIR(struct LexerContext *ctx) {
 void getTokenLARRAY(struct LexerContext *ctx) {
     size_t start = ctx->offset;
     size_t end = ctx->offset;
-    size_t startRow = ctx->row;
+    size_t startCol = ctx->column;
 
     match(ctx, '[');
 
@@ -138,8 +138,8 @@ void getTokenLARRAY(struct LexerContext *ctx) {
         .type = T_LARRAY,
         .start = start,
         .end = end,
-        .column = ctx->column,
-        .row = startRow,
+        .column = startCol,
+        .row = ctx->row,
         .text = substring(ctx, start, end),
     });
 }
@@ -147,7 +147,7 @@ void getTokenLARRAY(struct LexerContext *ctx) {
 void getTokenRARRAY(struct LexerContext *ctx) {
     size_t start = ctx->offset;
     size_t end = ctx->offset;
-    size_t startRow = ctx->row;
+    size_t startCol = ctx->column;
 
     match(ctx, ']');
 
@@ -155,8 +155,8 @@ void getTokenRARRAY(struct LexerContext *ctx) {
         .type = T_RARRAY,
         .start = start,
         .end = end,
-        .column = ctx->column,
-        .row = startRow,
+        .column = startCol,
+        .row = ctx->row,
         .text = substring(ctx, start, end),
     });
 }
@@ -164,7 +164,7 @@ void getTokenRARRAY(struct LexerContext *ctx) {
 void getTokenCOMMA(struct LexerContext *ctx) {
     size_t start = ctx->offset;
     size_t end = ctx->offset;
-    size_t startRow = ctx->row;
+    size_t startCol = ctx->column;
 
     match(ctx, ',');
 
@@ -172,8 +172,8 @@ void getTokenCOMMA(struct LexerContext *ctx) {
         .type = T_COMMA,
         .start = start,
         .end = end,
-        .column = ctx->column,
-        .row = startRow,
+        .column = startCol,
+        .row = ctx->row,
         .text = substring(ctx, start, end),
     });
 }
@@ -181,7 +181,7 @@ void getTokenCOMMA(struct LexerContext *ctx) {
 void getTokenCOLON(struct LexerContext *ctx) {
     size_t start = ctx->offset;
     size_t end = ctx->offset;
-    size_t startRow = ctx->row;
+    size_t startCol = ctx->column;
 
     match(ctx, ':');
 
@@ -189,8 +189,8 @@ void getTokenCOLON(struct LexerContext *ctx) {
         .type = T_COLON,
         .start = start,
         .end = end,
-        .column = ctx->column,
-        .row = startRow,
+        .column = startCol,
+        .row = ctx->row,
         .text = substring(ctx, start, end),
     });
 }
@@ -198,7 +198,7 @@ void getTokenCOLON(struct LexerContext *ctx) {
 void getTokenSTRING(struct LexerContext *ctx) {
     size_t start = 0;
     size_t end = 0;
-    size_t startRow = ctx->row;
+    size_t startCol = ctx->column;
 
     match(ctx, '"');
 
@@ -218,8 +218,8 @@ void getTokenSTRING(struct LexerContext *ctx) {
         .type = T_STRING,
         .start = start,
         .end = end,
-        .column = ctx->column,
-        .row = startRow,
+        .column = startCol,
+        .row = ctx->row,
         .text = substring(ctx, start, end),
     });
 }
@@ -227,7 +227,7 @@ void getTokenSTRING(struct LexerContext *ctx) {
 void getTokenNUMBER(struct LexerContext *ctx) {
     size_t start = ctx->offset;
     size_t end = 0;
-    size_t startRow = ctx->row;
+    size_t startCol = ctx->column;
 
     // we should lookahead more, but here we get number simply
     // '-'? ('0' | [1-9][0-9]*)+ ('.' [0-9]+)? ([eE] [+-]? [0-9]+)?
@@ -241,8 +241,8 @@ void getTokenNUMBER(struct LexerContext *ctx) {
         .type = T_NUMBER,
         .start = start,
         .end = end,
-        .column = ctx->column,
-        .row = startRow,
+        .column = startCol,
+        .row = ctx->row,
         .text = substring(ctx, start, end),
     });
 }
@@ -250,7 +250,7 @@ void getTokenNUMBER(struct LexerContext *ctx) {
 void getTokenTRUE(struct LexerContext *ctx) {
     size_t start = ctx->offset;
     size_t end = 0;
-    size_t startRow = ctx->row;
+    size_t startCol = ctx->column;
 
     matchStr(ctx, "true");
 
@@ -260,8 +260,8 @@ void getTokenTRUE(struct LexerContext *ctx) {
         .type = T_TRUE,
         .start = start,
         .end = end,
-        .column = ctx->column,
-        .row = startRow,
+        .column = startCol,
+        .row = ctx->row,
         .text = substring(ctx, start, end),
     });
 }
@@ -269,7 +269,7 @@ void getTokenTRUE(struct LexerContext *ctx) {
 void getTokenFALSE(struct LexerContext *ctx) {
     size_t start = ctx->offset;
     size_t end = 0;
-    size_t startRow = ctx->row;
+    size_t startCol = ctx->column;
 
     matchStr(ctx, "false");
 
@@ -279,8 +279,8 @@ void getTokenFALSE(struct LexerContext *ctx) {
         .type = T_FALSE,
         .start = start,
         .end = end,
-        .column = ctx->column,
-        .row = startRow,
+        .column = startCol,
+        .row = ctx->row,
         .text = substring(ctx, start, end),
     });
 }
@@ -288,7 +288,7 @@ void getTokenFALSE(struct LexerContext *ctx) {
 void getTokenNULL(struct LexerContext *ctx) {
     size_t start = ctx->offset;
     size_t end = 0;
-    size_t startRow = ctx->row;
+    size_t startCol = ctx->column;
 
     matchStr(ctx, "null");
 
@@ -298,8 +298,8 @@ void getTokenNULL(struct LexerContext *ctx) {
         .type = T_NULL,
         .start = start,
         .end = end,
-        .column = ctx->column,
-        .row = startRow,
+        .column = startCol,
+        .row = ctx->row,
         .text = substring(ctx, start, end),
     });
 }
@@ -345,8 +345,8 @@ void jsonLexer(struct LexerContext *ctx) {
             getTokenNULL(ctx);
         }
         else if (matchIfExist(ctx, '\n')) { // only match "\n", should consider these cases "\r\n" "\r"
-            ctx->column++;
-            ctx->row = 1;
+            ctx->row++;
+            ctx->column = 0;
         }
         else if (matchIfExist(ctx, ' ') || matchIfExist(ctx, '\t')) {
             continue;
