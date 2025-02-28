@@ -121,7 +121,7 @@ void matchToken(struct ParserContext *ctx, enum TokenType t) {
     nextToken(ctx);
 
     if (index < 0 || index >= ctx->container->tokenLength) {
-        fprintf(stderr, "Error Token Index: %d\n", index);
+        fprintf(stderr, "Error Token Index: %d expect <%d>\n", index, t);
         print_trace();
         assert(0);
     }
