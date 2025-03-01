@@ -8,59 +8,53 @@ enum TokenType {
 
 struct Token {
     enum TokenType type;
-    struct TokenContainer *container;
+    char *text;
     unsigned int index;
     unsigned int start;
     unsigned int end;
     unsigned int column;
     unsigned int row;
-    char *text;
 };
 
 struct BaseToken {
     enum TokenType type;
-    struct TokenContainer *container;
 };
 
 struct objToken {
     enum TokenType type;
-    struct TokenContainer *container;
     struct pairs *pairs;
 };
 
 struct arrToken {
     enum TokenType type;
-    struct TokenContainer *container;
     struct values *values;
 };
 
-struct valueToken {
+// struct valueToken {
+union valueToken {
     enum TokenType type;
-    struct TokenContainer *container;
-    union {
-        struct BaseToken next;
-        struct Token anyToken;
-        struct Token stringToken;
-        struct Token numberToken;
-        struct Token trueToken;
-        struct Token falseToken;
-        struct Token nullToken;
-        struct objToken obj;
-        struct arrToken arr;
-    };
+    struct BaseToken next;
+    struct Token anyToken;
+    struct Token stringToken;
+    struct Token numberToken;
+    struct Token trueToken;
+    struct Token falseToken;
+    struct Token nullToken;
+    struct objToken obj;
+    struct arrToken arr;
 };
+// };
 
 struct values {
     size_t length;
     size_t capacity;
-    struct valueToken list[];
+    union valueToken list[];
 };
 
 struct pairToken {
     enum TokenType type;
-    struct TokenContainer *container;
     struct Token key;
-    struct valueToken value;
+    union valueToken value;
 };
 
 struct pairs {
@@ -71,8 +65,7 @@ struct pairs {
 
 struct jsonToken {
     enum TokenType type;
-    struct TokenContainer *container;
-    struct valueToken value;
+    union valueToken value;
 };
 
 struct TokenContainer {
@@ -88,8 +81,9 @@ void freeTokenContainer(struct TokenContainer *container);
 
 void insertToken(struct TokenContainer *container, struct Token t);
 void insertPair(struct objToken *obj, struct pairToken pair);
-void insertValue(struct arrToken *arr, struct valueToken value);
+void insertValue(struct arrToken *arr, union valueToken value);
 
-struct Token copyToken(struct Token t);
+struct Token dupTerminalToken(const struct Token t);
+union valueToken dupNonTerminalToken(union valueToken t);
 
 #endif

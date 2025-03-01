@@ -14,7 +14,10 @@ struct LexerContext {
     FILE *stream;
 };
 
+struct LexerContext *initJsonLexer(FILE *stream);
+void freeJsonLexer(struct LexerContext *);
+
 void jsonLexer(struct LexerContext *ctx);
-void printToken(struct LexerContext *ctx);
+void printLexerToken(struct LexerContext *ctx);
 
 #endif

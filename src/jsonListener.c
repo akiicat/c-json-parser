@@ -89,7 +89,7 @@ void jsonWalkerNode(struct WalkerContext *ctx, struct BaseToken *token) {
         }
         case VALUE:
         {
-            struct valueToken *value = (struct valueToken *)token;
+            union valueToken *value = (union valueToken *)token;
             if (listener->enterValue)
                 listener->enterValue(ctx, value);
             jsonWalkerNode(ctx, &value->next);

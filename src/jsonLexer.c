@@ -7,6 +7,27 @@
 
 #include "jsonLexer.h"
 #include "debug.h"
+#include "token.h"
+
+struct LexerContext *initJsonLexer(FILE *stream) {
+    struct LexerContext *lexer_ctx = malloc(sizeof(struct LexerContext));
+
+    *lexer_ctx = (struct LexerContext) {
+        .container = initTokenContainer(),
+        .currentChar = '\0',
+        .offset = 0,
+        .column = 0,
+        .row = 1,
+        .stream = stream,
+    };
+
+    return lexer_ctx;
+}
+
+void freeJsonLexer(struct LexerContext *lexer_ctx) {
+    freeTokenContainer(lexer_ctx->container);
+    free(lexer_ctx);
+};
 
 int nextChar(struct LexerContext *ctx) {
     if (!ctx->stream) {
@@ -81,7 +102,7 @@ char *substring(struct LexerContext *ctx, size_t start, size_t end) {
     return text;
 }
 
-void printToken(struct LexerContext *ctx) {
+void printLexerToken(struct LexerContext *ctx) {
     struct Token t;
     for (int i = 0; i < ctx->container->tokenLength; i++) {
         t = ctx->container->tokenList[i];

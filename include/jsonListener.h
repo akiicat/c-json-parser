@@ -12,7 +12,7 @@ typedef void (*anyListenerCallback) (struct WalkerContext *ctx, struct BaseToken
 typedef void (*jsonListenerCallback) (struct WalkerContext *ctx, struct jsonToken *token);
 typedef void (*objListenerCallback) (struct WalkerContext *ctx, struct objToken *token);
 typedef void (*arrListenerCallback) (struct WalkerContext *ctx, struct arrToken *token);
-typedef void (*valueListenerCallback) (struct WalkerContext *ctx, struct valueToken *token);
+typedef void (*valueListenerCallback) (struct WalkerContext *ctx, union valueToken *token);
 typedef void (*pairListenerCallback) (struct WalkerContext *ctx, struct pairToken *token);
 
 struct Listener {

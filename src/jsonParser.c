@@ -6,9 +6,25 @@
 
 #include "jsonParser.h"
 #include "debug.h"
+#include "token.h"
 
 struct objToken objRule(struct ParserContext *ctx);
 struct arrToken arrRule(struct ParserContext *ctx);
+
+struct ParserContext *initJsonParser(struct LexerContext *lexer_ctx) {
+    struct ParserContext *parser_ctx = malloc(sizeof(struct ParserContext));
+
+    *parser_ctx = (struct ParserContext) {
+        .tokenIndex = 0,
+        .container = lexer_ctx->container,
+    };
+
+    return parser_ctx;
+}
+
+void freeJsonParser(struct ParserContext *parser_ctx) {
+    free(parser_ctx);
+}
 
 void printTreeNode(struct ParserContext *ctx, struct BaseToken *token) {
     static int indent = 0;
@@ -31,7 +47,7 @@ void printTreeNode(struct ParserContext *ctx, struct BaseToken *token) {
         }
         case VALUE:
         {
-            struct valueToken *value = (struct valueToken *)token;
+            union valueToken *value = (union valueToken *)token;
             printTreeNode(ctx, &value->next);
             break;
         }
@@ -151,10 +167,9 @@ bool checkLAToken(struct ParserContext *ctx, enum TokenType t) {
     return LAToken(ctx, 0) == t;
 }
 
-struct valueToken valueRule(struct ParserContext *ctx) {
-    struct valueToken value = {
+union valueToken valueRule(struct ParserContext *ctx) {
+    union valueToken value = {
         .type = VALUE,
-        .container = ctx->container,
     };
 
     // value : obj | arr | STRING | NUMBER | 'true' | 'false' | 'null' ;
@@ -196,7 +211,6 @@ struct valueToken valueRule(struct ParserContext *ctx) {
 struct pairToken pairRule(struct ParserContext *ctx) {
     struct pairToken pair = {
         .type = PAIR,
-        .container = ctx->container,
         .key = ctx->container->tokenList[ctx->tokenIndex],
     };
 
@@ -213,7 +227,6 @@ struct objToken objRule(struct ParserContext *ctx) {
     struct pairToken pair = {};
     struct objToken obj = {
         .type = OBJ,
-        .container = ctx->container,
     };
 
     // obj : T_LPAIR pair (',' pair)* T_RPAIR | T_LPAIR T_RPAIR;
@@ -235,10 +248,9 @@ struct objToken objRule(struct ParserContext *ctx) {
 }
 
 struct arrToken arrRule(struct ParserContext *ctx) {
-    struct valueToken value = {};
+    union valueToken value = {};
     struct arrToken arr = {
         .type = ARR,
-        .container = ctx->container,
     };
 
     // arr : T_LARRAY value* T_RARRAY ;
@@ -262,7 +274,6 @@ struct arrToken arrRule(struct ParserContext *ctx) {
 struct jsonToken jsonRule(struct ParserContext *ctx) {
     struct jsonToken json = {
         .type = JSON,
-        .container = ctx->container,
     };
 
     // json : value EOF;
@@ -273,8 +284,9 @@ struct jsonToken jsonRule(struct ParserContext *ctx) {
     return json;
 }
 
-void jsonParser(struct ParserContext *ctx) {
-    ctx->container->root = jsonRule(ctx);
+union valueToken *jsonParser(struct ParserContext *ctx) {
+    ctx->root = jsonRule(ctx).value;
+    return &ctx->root;
 }
 
 void freeParserNode(struct ParserContext *ctx, struct BaseToken *token) {
@@ -293,7 +305,7 @@ void freeParserNode(struct ParserContext *ctx, struct BaseToken *token) {
             break;
         case VALUE:
         {
-            struct valueToken *value = (struct valueToken *)token;
+            union valueToken *value = (union valueToken *)token;
             freeParserNode(ctx, &value->next);
             break;
         }

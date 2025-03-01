@@ -48,25 +48,30 @@ struct TokenContainer *initTokenContainer() {
 }
 
 void freeTokenContainer(struct TokenContainer *container) {
-    char *text = NULL;
-
-    if (!container->tokenList) {
+    if (!container) {
         return;
     }
 
-    while (container->tokenLength > 0) {
-        container->tokenLength--;
+    // Store internal pointers and count before freeing the container itself
+    struct Token *tokenList = container->tokenList;
+    unsigned int tokenLength = container->tokenLength;
 
-        text = container->tokenList[container->tokenLength].text;
-        container->tokenList[container->tokenLength].text = NULL;
+    // Free the container structure first since tokenList was allocated separately
+    free(container);
 
-        if (text) {
-            free(text);
-            text = NULL;
-        }
+    // If tokenList is NULL, there's nothing more to free
+    if (tokenList == NULL) {
+        return;
     }
 
-    free(container->tokenList);
+    // Free each token's text in reverse order
+    for (unsigned int i = tokenLength; i > 0; i--) {
+        free(tokenList[i - 1].text);
+        tokenList[i - 1].text = NULL;  // Defensive: nullify pointer after free
+    }
+
+    // Free the token list array itself
+    free(tokenList);
 }
 
 void insertToken(struct TokenContainer *container, struct Token t) {
@@ -103,7 +108,6 @@ void insertToken(struct TokenContainer *container, struct Token t) {
         container->tokenCapacity *= 2;
     }
 
-    t.container = container;
     t.index = container->tokenLength;
 
     container->tokenList[container->tokenLength] = t;
@@ -139,11 +143,10 @@ void insertPair(struct objToken *obj, struct pairToken pair) {
         obj->pairs->capacity *= 2;
     }
 
-    pair.container = obj->container;
     obj->pairs->list[obj->pairs->length++] = pair;
 }
 
-void insertValue(struct arrToken *arr, struct valueToken value) {
+void insertValue(struct arrToken *arr, union valueToken value) {
     struct values *oldList = NULL;
     struct values *newList = NULL;
     size_t oldSize = 0;
@@ -151,17 +154,17 @@ void insertValue(struct arrToken *arr, struct valueToken value) {
 
     // set default token list
     if (!arr->values) {
-        arr->values = (struct values *)malloc(sizeof(struct values) + sizeof(struct valueToken));
+        arr->values = (struct values *)malloc(sizeof(struct values) + sizeof(union valueToken));
         arr->values->length = 0;
         arr->values->capacity = 1;
     }
 
     oldList = arr->values;
-    oldSize = sizeof(struct values) + sizeof(struct valueToken) * arr->values->capacity;
+    oldSize = sizeof(struct values) + sizeof(union valueToken) * arr->values->capacity;
 
     // double token list if full, time complexity O(3n)
     if (oldList->length >= oldList->capacity) {
-        newSize = sizeof(struct values) + sizeof(struct valueToken) * oldList->capacity * 2;
+        newSize = sizeof(struct values) + sizeof(union valueToken) * oldList->capacity * 2;
         newList = (struct values *)malloc(newSize);
 
         memcpy(newList, oldList, oldSize);
@@ -172,21 +175,70 @@ void insertValue(struct arrToken *arr, struct valueToken value) {
         arr->values->capacity *= 2;
     }
 
-    value.container = arr->container;
     arr->values->list[arr->values->length++] = value;
 }
 
-struct Token copyToken(struct Token t) {
+struct Token dupTerminalToken(struct Token t) {
     size_t textSize = 0;
     char *text = NULL;
 
-    textSize = strlen(t.text);
-    text = (char *)malloc(textSize + 1);
+    if (t.text) {
+        textSize = strlen(t.text);
+        text = (char *)malloc(textSize + 1);
 
-    strncpy(text, t.text, textSize);
-    text[textSize] = '\0';
+        strncpy(text, t.text, textSize);
+        text[textSize] = '\0';
 
-    t.text = text;
+        t.text = text;
+    }
 
     return t;
+}
+
+union valueToken dupNonTerminalToken(union valueToken t) {
+    union valueToken res;
+
+    switch (t.type) {
+    case T_STRING:
+    case T_NUMBER:
+    case T_TRUE:
+    case T_FALSE:
+    case T_NULL:
+    {
+        res.anyToken = dupTerminalToken(t.anyToken);
+        break;
+    }
+    case ARR:
+    {
+        res.arr = (struct arrToken) {
+            .type = ARR,
+        };
+
+        for (int i = 0; i < t.arr.values->length; i++) {
+            insertValue(&res.arr, dupNonTerminalToken(t.arr.values->list[i]));
+        }
+        break;
+    }
+    case OBJ:
+    {
+        res.obj = (struct objToken) {
+            .type = OBJ,
+        };
+
+        for (int i = 0; i < t.obj.pairs->length; i++) {
+            struct pairToken pair = {
+                .type = PAIR,
+                .key = dupTerminalToken(t.obj.pairs->list[i].key),
+                .value = dupNonTerminalToken(t.obj.pairs->list[i].value),
+            };
+            insertPair(&res.obj, pair);
+        }
+        break;
+    }
+    default:
+        fprintf(stderr, "dupToken: unsupport token <%d|%s>", t.type, type2str(t.type));
+        break;
+    }
+
+    return res;
 }

@@ -1,5 +1,5 @@
 #!/bin/bash
 
 make clean
-make build
+make debug_build
 make run
