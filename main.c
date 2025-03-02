@@ -122,15 +122,15 @@ int main(int argc, char *argv[]) {
     // }
 
     struct objToken *obj = createObj();
-    objInsert(obj, "Name", (union valueToken) { .stringToken = { .type = T_STRING, .text = "BBB" } });
-    objInsert(obj, "Age", (union valueToken) { .stringToken = { .type = T_NUMBER, .text = "1.23" } });
-    objInsert(obj, "Bool", (union valueToken) { .stringToken = { .type = T_TRUE } });
+    objInsert(obj, JSON_STR("Name"), JSON_STR("BBB"));
+    // objInsert(obj, "Age", JSON_NUM(123));
+    // objInsert(obj, "Bool", true);
 
     struct objToken *innerObj = createObj();
-    objInsert(innerObj, "innerAGE", (union valueToken) { .stringToken = { .type = T_NUMBER, .text = "1.23" } });
-    objInsert(innerObj, "innerBool", (union valueToken) { .stringToken = { .type = T_TRUE } });
+    // objInsert(innerObj, "innerAGE", 456);
+    // objInsert(innerObj, "innerBool", false);
 
-    objInsert(obj, "inner", (union valueToken)*innerObj);
+    // objInsert(obj, JSON_STR("inner"), (union valueToken)*innerObj);
     freeObj(innerObj);
 
     printJson((union valueToken)*obj);

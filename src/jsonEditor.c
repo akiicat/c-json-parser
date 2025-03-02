@@ -72,6 +72,7 @@ void freeObj(struct objToken *obj) {
 
 struct objToken *dupObj(struct objToken *obj) {
     struct objToken *res = createObj();
+    *res = dupNonTerminalToken((union valueToken)*obj).obj;
     return res;
 }
 
@@ -90,24 +91,6 @@ void freeArr(struct arrToken *arr) {
     free(arr);
 }
 
-int objInsert(struct objToken *obj, const char *key, union valueToken value) {
-    if (objFind(obj, key)) {
-        return 1;
-    }
-
-    struct pairToken pair = {
-        .type = PAIR,
-        .key = {
-            .type = T_STRING,
-            .text = strdup(key),
-        },
-        .value = dupToken(value),
-    };
-
-    insertPair(obj, pair);
-
-    return 0;
-}
 
 void objDelete(struct objToken *obj, const char *key) {
     for (int i = 0; i < obj->pairs->length; i++) {
@@ -124,7 +107,7 @@ void objDelete(struct objToken *obj, const char *key) {
 }
 
 union valueToken *objFind(struct objToken *obj, const char *key) {
-    if (obj->pairs) {
+    if (key && obj && obj->pairs) {
         for (int i = 0; i < obj->pairs->length; i++) {
             if (strlen(obj->pairs->list[i].key.text) == strlen(key) && strcmp(obj->pairs->list[i].key.text, key) == 0) {
                 return &obj->pairs->list[i].value;

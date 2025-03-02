@@ -11,6 +11,16 @@ const char *typeString[TOKEN_SIZE] = {
     "T_MISSING",
     "T_STRING",
     "T_NUMBER",
+    "T_INT8",
+    "T_INT16",
+    "T_INT32",
+    "T_INT64",
+    "T_UINT8",
+    "T_UINT16",
+    "T_UINT32",
+    "T_UINT64",
+    "T_FLOAT",
+    "T_DOUBLE",
     "T_COMMA",
     "T_COLON",
     "T_LPAIR",
@@ -214,8 +224,10 @@ union valueToken dupNonTerminalToken(union valueToken t) {
             .type = ARR,
         };
 
-        for (int i = 0; i < t.arr.values->length; i++) {
-            insertValue(&res.arr, dupNonTerminalToken(t.arr.values->list[i]));
+        if (t.arr.values) {
+            for (int i = 0; i < t.arr.values->length; i++) {
+                insertValue(&res.arr, dupNonTerminalToken(t.arr.values->list[i]));
+            }
         }
         break;
     }
@@ -225,13 +237,15 @@ union valueToken dupNonTerminalToken(union valueToken t) {
             .type = OBJ,
         };
 
-        for (int i = 0; i < t.obj.pairs->length; i++) {
-            struct pairToken pair = {
-                .type = PAIR,
-                .key = dupTerminalToken(t.obj.pairs->list[i].key),
-                .value = dupNonTerminalToken(t.obj.pairs->list[i].value),
-            };
-            insertPair(&res.obj, pair);
+        if (t.obj.pairs) {
+            for (int i = 0; i < t.obj.pairs->length; i++) {
+                struct pairToken pair = {
+                    .type = PAIR,
+                    .key = dupTerminalToken(t.obj.pairs->list[i].key),
+                    .value = dupNonTerminalToken(t.obj.pairs->list[i].value),
+                };
+                insertPair(&res.obj, pair);
+            }
         }
         break;
     }
