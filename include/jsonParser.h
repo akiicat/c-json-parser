@@ -6,15 +6,15 @@
 
 struct ParserContext {
     unsigned int tokenIndex;
-    struct TokenContainer *container;
-    union valueToken root;
+    struct LexerContext *lexer;
+    union valueToken *root;
 };
 
 struct ParserContext *initJsonParser(struct LexerContext *lexer_ctx);
 void freeJsonParser(struct ParserContext *);
 
 union valueToken *jsonParser(struct ParserContext *ctx);
-void printTree(struct ParserContext *ctx);
-void freeParser(struct ParserContext *ctx);
+// void printTree(struct ParserContext *ctx);
+// void freeParser(struct ParserContext *ctx);
 
 #endif

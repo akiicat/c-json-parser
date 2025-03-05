@@ -7,13 +7,39 @@
 
 #include "jsonLexer.h"
 #include "debug.h"
-#include "token.h"
 
-struct LexerContext *initJsonLexer(FILE *stream) {
-    struct LexerContext *lexer_ctx = malloc(sizeof(struct LexerContext));
+const char *LexerTypeString[] = {
+    "T_MISSING",
+    "T_STRING",
+    "T_NUMBER",
+    "T_COMMA",
+    "T_COLON",
+    "T_LPAIR",
+    "T_RPAIR",
+    "T_LARRAY",
+    "T_RARRAY",
+    "T_TRUE",
+    "T_FALSE",
+    "T_NULL",
+};
 
-    *lexer_ctx = (struct LexerContext) {
-        .container = initTokenContainer(),
+const char *lextype2str(enum json_lexer_type type) {
+    if (type >= LT_MISSING && type < LEXER_TOKEN_SIZE) {
+        return LexerTypeString[type];
+    }
+
+    return NULL;
+}
+
+struct json_lexer_context_t *initJsonLexer(FILE *stream) {
+    struct json_lexer_context_t *lexer_ctx = malloc(sizeof(struct json_lexer_context_t));
+
+    *lexer_ctx = (struct json_lexer_context_t) {
+        .tokens = {
+            .length = 0,
+            .capacity = 0,
+            .list = NULL,
+        },
         .currentChar = '\0',
         .offset = 0,
         .column = 0,
@@ -24,12 +50,62 @@ struct LexerContext *initJsonLexer(FILE *stream) {
     return lexer_ctx;
 }
 
-void freeJsonLexer(struct LexerContext *lexer_ctx) {
-    freeTokenContainer(lexer_ctx->container);
+void freeJsonLexer(struct json_lexer_context_t *lexer_ctx) {
+    if (lexer_ctx && lexer_ctx->tokens.list) {
+
+        // Free each token's text in reverse order
+        for (unsigned int i = lexer_ctx->tokens.length; i > 0; i--) {
+            free(lexer_ctx->tokens.list[i - 1].text);
+            lexer_ctx->tokens.list[i - 1].text = NULL;  // Defensive: nullify pointer after free
+        }
+
+        free(lexer_ctx->tokens.list);
+    }
+
     free(lexer_ctx);
 };
 
-int nextChar(struct LexerContext *ctx) {
+void insertToken(struct json_lexer_context_t *ctx, struct json_lexer_token_t *t) {
+    struct json_lexer_container_t *tokens = &ctx->tokens;
+    struct json_lexer_token_t *oldList = NULL;
+    struct json_lexer_token_t *newList = NULL;
+    size_t oldSize = 0;
+    size_t newSize = 0;
+
+    if (!tokens) {
+        fprintf(stderr, "Error Token Container is not initialized\n");
+        print_trace();
+        assert(0);
+    }
+
+    // set default token list
+    if (!tokens->list) {
+        tokens->capacity = 1;
+        tokens->list = (struct json_lexer_token_t *)malloc(sizeof(struct json_lexer_token_t) * tokens->capacity); 
+    }
+
+    // double token list if full, time complexity O(3n)
+    if (tokens->length >= tokens->capacity) {
+        oldSize = sizeof(struct json_lexer_token_t) * tokens->capacity;
+        oldList = tokens->list;
+        newSize = sizeof(struct json_lexer_token_t) * tokens->capacity * 2;
+        newList = (struct json_lexer_token_t *)malloc(newSize);
+
+        memcpy(newList, oldList, oldSize);
+        free(oldList);
+        oldList = NULL;
+
+        tokens->list = newList;
+        tokens->capacity *= 2;
+    }
+
+    t->index = tokens->length;
+
+    tokens->list[tokens->length] = *t;
+    tokens->length++;
+}
+
+int nextChar(struct json_lexer_context_t *ctx) {
     if (!ctx->stream) {
         fprintf(stderr, "No Input stream\n");
         print_trace();
@@ -42,11 +118,11 @@ int nextChar(struct LexerContext *ctx) {
     return ctx->currentChar;
 }
 
-bool lookahead(struct LexerContext *ctx, int c) {
+bool lookahead(struct json_lexer_context_t *ctx, int c) {
     return ctx->currentChar == c;
 }
 
-void match(struct LexerContext *ctx, int c) {
+void match(struct json_lexer_context_t *ctx, int c) {
     char curC = ctx->currentChar;
 
     // always get the next one before checking
@@ -59,13 +135,13 @@ void match(struct LexerContext *ctx, int c) {
     }
 }
 
-void matchStr(struct LexerContext *ctx, const char *str) {
+void matchStr(struct json_lexer_context_t *ctx, const char *str) {
     for (int i = 0; str[i] != '\0'; i++) {
         match(ctx, str[i]);
     }
 }
 
-bool matchIfExist(struct LexerContext *ctx, int c) {
+bool matchIfExist(struct json_lexer_context_t *ctx, int c) {
     bool isMatch = (ctx->currentChar == c);
 
     if (isMatch) {
@@ -75,7 +151,7 @@ bool matchIfExist(struct LexerContext *ctx, int c) {
     return isMatch;
 }
 
-char *substring(struct LexerContext *ctx, size_t start, size_t end) {
+char *substring(struct json_lexer_context_t *ctx, size_t start, size_t end) {
     size_t textSize = 0;
     char *text = NULL;
     int error = 0;
@@ -102,27 +178,27 @@ char *substring(struct LexerContext *ctx, size_t start, size_t end) {
     return text;
 }
 
-void printLexerToken(struct LexerContext *ctx) {
-    struct Token t;
-    for (int i = 0; i < ctx->container->tokenLength; i++) {
-        t = ctx->container->tokenList[i];
+void print__json_lexer_t(struct json_lexer_context_t *ctx) {
+    struct json_lexer_token_t t;
+    for (int i = 0; i < ctx->tokens.length; i++) {
+        t = ctx->tokens.list[i];
         if (t.text) {
-            printf("@%u#%u,%u<%u|%s>%u:%u %s\n", t.index, t.start, t.end, t.type, type2str(t.type), t.row, t.column, t.text);
+            printf("@%u#%u,%u<%u|%s>%u:%u %s\n", t.index, t.start, t.end, t.type, lextype2str(t.type), t.row, t.column, t.text);
         } else {
-            printf("@%u#%u,%u<%u|%s>%u:%u\n", t.index, t.start, t.end, t.type, type2str(t.type), t.row, t.column);
+            printf("@%u#%u,%u<%u|%s>%u:%u\n", t.index, t.start, t.end, t.type, lextype2str(t.type), t.row, t.column);
         }
     }
 }
 
-void getTokenLPAIR(struct LexerContext *ctx) {
+void getTokenLPAIR(struct json_lexer_context_t *ctx) {
     size_t start = ctx->offset;
     size_t end = ctx->offset;
     size_t startCol = ctx->column;
 
     match(ctx, '{');
 
-    insertToken(ctx->container, (struct Token) {
-        .type = T_LPAIR,
+    insertToken(ctx, & (struct json_lexer_token_t) {
+        .type = LT_LPAIR,
         .start = start,
         .end = end,
         .column = startCol,
@@ -131,15 +207,15 @@ void getTokenLPAIR(struct LexerContext *ctx) {
     });
 }
 
-void getTokenRPAIR(struct LexerContext *ctx) {
+void getTokenRPAIR(struct json_lexer_context_t *ctx) {
     size_t start = ctx->offset;
     size_t end = ctx->offset;
     size_t startCol = ctx->column;
 
     match(ctx, '}');
 
-    insertToken(ctx->container, (struct Token) {
-        .type = T_RPAIR,
+    insertToken(ctx, & (struct json_lexer_token_t) {
+        .type = LT_RPAIR,
         .start = start,
         .end = end,
         .column = startCol,
@@ -148,15 +224,15 @@ void getTokenRPAIR(struct LexerContext *ctx) {
     });
 }
 
-void getTokenLARRAY(struct LexerContext *ctx) {
+void getTokenLARRAY(struct json_lexer_context_t *ctx) {
     size_t start = ctx->offset;
     size_t end = ctx->offset;
     size_t startCol = ctx->column;
 
     match(ctx, '[');
 
-    insertToken(ctx->container, (struct Token) {
-        .type = T_LARRAY,
+    insertToken(ctx, & (struct json_lexer_token_t) {
+        .type = LT_LARRAY,
         .start = start,
         .end = end,
         .column = startCol,
@@ -165,15 +241,15 @@ void getTokenLARRAY(struct LexerContext *ctx) {
     });
 }
 
-void getTokenRARRAY(struct LexerContext *ctx) {
+void getTokenRARRAY(struct json_lexer_context_t *ctx) {
     size_t start = ctx->offset;
     size_t end = ctx->offset;
     size_t startCol = ctx->column;
 
     match(ctx, ']');
 
-    insertToken(ctx->container, (struct Token) {
-        .type = T_RARRAY,
+    insertToken(ctx, & (struct json_lexer_token_t) {
+        .type = LT_RARRAY,
         .start = start,
         .end = end,
         .column = startCol,
@@ -182,15 +258,15 @@ void getTokenRARRAY(struct LexerContext *ctx) {
     });
 }
 
-void getTokenCOMMA(struct LexerContext *ctx) {
+void getTokenCOMMA(struct json_lexer_context_t *ctx) {
     size_t start = ctx->offset;
     size_t end = ctx->offset;
     size_t startCol = ctx->column;
 
     match(ctx, ',');
 
-    insertToken(ctx->container, (struct Token) {
-        .type = T_COMMA,
+    insertToken(ctx, & (struct json_lexer_token_t) {
+        .type = LT_COMMA,
         .start = start,
         .end = end,
         .column = startCol,
@@ -199,15 +275,15 @@ void getTokenCOMMA(struct LexerContext *ctx) {
     });
 }
 
-void getTokenCOLON(struct LexerContext *ctx) {
+void getTokenCOLON(struct json_lexer_context_t *ctx) {
     size_t start = ctx->offset;
     size_t end = ctx->offset;
     size_t startCol = ctx->column;
 
     match(ctx, ':');
 
-    insertToken(ctx->container, (struct Token) {
-        .type = T_COLON,
+    insertToken(ctx, & (struct json_lexer_token_t) {
+        .type = LT_COLON,
         .start = start,
         .end = end,
         .column = startCol,
@@ -216,7 +292,7 @@ void getTokenCOLON(struct LexerContext *ctx) {
     });
 }
 
-void getTokenSTRING(struct LexerContext *ctx) {
+void getTokenSTRING(struct json_lexer_context_t *ctx) {
     size_t start = 0;
     size_t end = 0;
     size_t startCol = ctx->column;
@@ -235,8 +311,8 @@ void getTokenSTRING(struct LexerContext *ctx) {
 
     match(ctx, '"');
 
-    insertToken(ctx->container, (struct Token) {
-        .type = T_STRING,
+    insertToken(ctx, & (struct json_lexer_token_t) {
+        .type = LT_STRING,
         .start = start,
         .end = end,
         .column = startCol,
@@ -245,7 +321,7 @@ void getTokenSTRING(struct LexerContext *ctx) {
     });
 }
 
-void getTokenNUMBER(struct LexerContext *ctx) {
+void getTokenNUMBER(struct json_lexer_context_t *ctx) {
     size_t start = ctx->offset;
     size_t end = 0;
     size_t startCol = ctx->column;
@@ -258,8 +334,8 @@ void getTokenNUMBER(struct LexerContext *ctx) {
 
     end = ctx->offset - 1;
 
-    insertToken(ctx->container, (struct Token) {
-        .type = T_NUMBER,
+    insertToken(ctx, & (struct json_lexer_token_t) {
+        .type = LT_NUMBER,
         .start = start,
         .end = end,
         .column = startCol,
@@ -268,7 +344,7 @@ void getTokenNUMBER(struct LexerContext *ctx) {
     });
 }
 
-void getTokenTRUE(struct LexerContext *ctx) {
+void getTokenTRUE(struct json_lexer_context_t *ctx) {
     size_t start = ctx->offset;
     size_t end = 0;
     size_t startCol = ctx->column;
@@ -277,8 +353,8 @@ void getTokenTRUE(struct LexerContext *ctx) {
 
     end = ctx->offset - 1;
 
-    insertToken(ctx->container, (struct Token) {
-        .type = T_TRUE,
+    insertToken(ctx, & (struct json_lexer_token_t) {
+        .type = LT_TRUE,
         .start = start,
         .end = end,
         .column = startCol,
@@ -287,7 +363,7 @@ void getTokenTRUE(struct LexerContext *ctx) {
     });
 }
 
-void getTokenFALSE(struct LexerContext *ctx) {
+void getTokenFALSE(struct json_lexer_context_t *ctx) {
     size_t start = ctx->offset;
     size_t end = 0;
     size_t startCol = ctx->column;
@@ -296,8 +372,8 @@ void getTokenFALSE(struct LexerContext *ctx) {
 
     end = ctx->offset - 1;
 
-    insertToken(ctx->container, (struct Token) {
-        .type = T_FALSE,
+    insertToken(ctx, & (struct json_lexer_token_t) {
+        .type = LT_FALSE,
         .start = start,
         .end = end,
         .column = startCol,
@@ -306,7 +382,7 @@ void getTokenFALSE(struct LexerContext *ctx) {
     });
 }
 
-void getTokenNULL(struct LexerContext *ctx) {
+void getTokenNULL(struct json_lexer_context_t *ctx) {
     size_t start = ctx->offset;
     size_t end = 0;
     size_t startCol = ctx->column;
@@ -315,8 +391,8 @@ void getTokenNULL(struct LexerContext *ctx) {
 
     end = ctx->offset - 1;
 
-    insertToken(ctx->container, (struct Token) {
-        .type = T_NULL,
+    insertToken(ctx, & (struct json_lexer_token_t) {
+        .type = LT_NULL,
         .start = start,
         .end = end,
         .column = startCol,
@@ -325,7 +401,7 @@ void getTokenNULL(struct LexerContext *ctx) {
     });
 }
 
-void jsonLexer(struct LexerContext *ctx) {
+void jsonLexer(struct json_lexer_context_t *ctx) {
 
     nextChar(ctx);
 
