@@ -2,12 +2,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "jsonEditor.h"
-#include "jsonLexer.h"
+// #include "jsonEditor.h"
+// #include "jsonLexer.h"
 // #include "jsonParser.h"
 // #include "jsonListener.h"
-#include "jsonParser.h"
-#include "token.h"
+// #include "jsonParser.h"
+#include "json.h"
 
 // void enterJson(struct WalkerContext *ctx, struct jsonToken *token) {
 // }
@@ -27,10 +27,10 @@
 // void exitArr(struct WalkerContext *ctx, struct arrToken *token) {
 // }
 
-// void enterValue(struct WalkerContext *ctx, json_val_t *token) {
+// void enterValue(struct WalkerContext *ctx, json_t *token) {
 // }
 
-// void exitValue(struct WalkerContext *ctx, json_val_t *token) {
+// void exitValue(struct WalkerContext *ctx, json_t *token) {
 // }
 
 // void enterPair(struct WalkerContext *ctx, struct pairToken *token) {
@@ -53,42 +53,42 @@
 
 void obj_test() {
 
-    json_obj_t obj = JSON_OBJECT;
+    union json_t obj = JSON_OBJECT;
 
-    json_obj_set(&obj, "Name", "BBB");
-    json_obj_set(&obj, "Age", 123);
-    json_obj_set(&obj, "Age", 123.123);
-    json_obj_set(&obj, "Bool", true);
-    json_obj_set(&obj, "Null", JSON_NULL);
-    json_obj_set(&obj, "Array", JSON_ARRAY);
-    json_obj_set(&obj, "Object", JSON_OBJECT);
-    json_obj_set(&obj, "Bool", JSON_EMPTY);
+    json_set(&obj, "Name", "BBB");
+    json_set(&obj, "Age", 123);
+    json_set(&obj, "Age", 123.123);
+    json_set(&obj, "Bool", true);
+    json_set(&obj, "Null", JSON_NULL);
+    json_set(&obj, "Array", JSON_ARRAY);
+    json_set(&obj, "Object", JSON_OBJECT);
+    json_set(&obj, "Bool", JSON_EMPTY);
 
-    // json_obj_remove(&obj, (json_val_t)JSON_STR("BBB"));
+    // json_obj_remove(&obj, (json_t)JSON_STR("BBB"));
 
-    json_obj_t innerObj = JSON_OBJECT;
-    json_obj_set(&innerObj, "inner2AGE", 789);
-    json_obj_set(&innerObj, "inner2Bool", true);
-    json_obj_set(&obj, "inner move", &innerObj);
+    union json_t innerObj = JSON_OBJECT;
+    json_set(&innerObj, "inner2AGE", 789);
+    json_set(&innerObj, "inner2Bool", true);
+    json_set(&obj, "inner move", &innerObj);
 
     innerObj = JSON_OBJECT;
-    json_obj_set(&innerObj, "inner1AGE", 456);
-    json_obj_set(&innerObj, "inner1Bool", false);
-    json_obj_set(&obj, "inner copy", innerObj);
-    json_clean_up(&innerObj);
+    json_set(&innerObj, "inner1AGE", 456);
+    json_set(&innerObj, "inner1Bool", false);
+    json_set(&obj, "inner copy", innerObj);
+    json_clean(&innerObj);
 
-    json_obj_set((json_obj_t *)__json_obj_get(obj, "Object"), "Test1", "OK");
-    json_obj_set(&__json_obj_get(obj, "Object")->obj, "Test2", "OK");
+    // json_set((json_obj_t *)__json_obj_get(obj, "Object"), "Test1", "OK");
+    // json_set(&__json_obj_get(obj, "Object")->obj, "Test2", "OK");
 
     // json_obj_t obj3 = __obj_get_copy(obj, "Object").obj;
-    // json_obj_set(&obj3, "Test13", "OK");
-    // json_obj_set(&obj3, "Test23", "OK");
-    // freeValue((json_val_t*)&obj3);
+    // json_set(&obj3, "Test13", "OK");
+    // json_set(&obj3, "Test23", "OK");
+    // freeValue((json_t*)&obj3);
     // printf("Name: %s\n", __obj_get(obj, "Name").stringToken.text);
     // printf("Name: %s\n", __obj_get(obj, "Name").stringToken.text);
 
-    printJson((json_val_t)obj);
-    json_clean_up(&obj);
+    json_print((union json_t)obj);
+    json_clean(&obj);
 }
 
 int main(int argc, char *argv[]) {
@@ -165,8 +165,8 @@ int main(int argc, char *argv[]) {
 
     obj_test();
 
-    struct json_lexer_context_t *lexer_ctx = initJsonLexer(memstream);
-    jsonLexer(lexer_ctx);
+    struct json_lexer_context_t *lexer_ctx = json_create_lexer(memstream);
+    json_execute_lexer(lexer_ctx);
     // printLexerToken(lexer_ctx);
     
     fclose(memstream);
@@ -176,7 +176,7 @@ int main(int argc, char *argv[]) {
     // struct valueToken *value = jsonParser(parser_ctx);
 
     // freeJsonParser(parser_ctx);
-    freeJsonLexer(lexer_ctx);
+    json_clean_lexer(lexer_ctx);
 
     // // objInsert(&parser_ctx.container->root.value.obj, "AAA", (struct valueToken) { .stringToken = { .type = T_STRING, .text = "BBB" } });
     // printToken(&lexer_ctx);
