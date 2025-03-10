@@ -7,8 +7,8 @@
 #include "../json.h"
 
 /* This value is between 0 and 1. If it defines 0.3, it means at least 70% of space will be waste. */
-#define HASHMAP_MIN_SIZE 8
 #define HASHMAP_FILL_FACTOR 0.5
+#define HASHMAP_MIN_SIZE 8
 
 // We need to keep keys and values
 struct hashmap_element {

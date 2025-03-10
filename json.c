@@ -24,6 +24,15 @@ void print_trace(void) {
     free(strings);
 }
 
+char *json_strdup(const char *s) {
+    size_t size = strlen(s) + 1;
+    char *p = malloc(size);
+    if (p != NULL) {
+        memcpy(p, s, size);
+    }
+    return p;
+}
+
 // --------------------------------------------------
 // SECTION: JSON TOKEN
 // --------------------------------------------------
@@ -40,70 +49,97 @@ const char *json_type2str(enum json_token_type_t type) {
     return NULL;
 }
 
+#define UNUSED(x) ((void)(x))
+
 __attribute__((weak)) void jsonext_obj_insert(union json_t *j, struct json_pair_t *pair) {
+    UNUSED(j);
+    UNUSED(pair);
     print_trace();
     assert(0);
 }
 __attribute__((weak)) void jsonext_arr_append(union json_t *j, union json_t *value) {
+    UNUSED(j);
+    UNUSED(value);
     print_trace();
     assert(0);
 }
 __attribute__((weak)) struct json_pair_t *jsonext_obj_get(union json_t *j, const char *key) {
+    UNUSED(j);
+    UNUSED(key);
     print_trace();
     assert(0);
     return NULL;
 }
 __attribute__((weak)) union json_t *jsonext_arr_get(union json_t *j, size_t index) {
+    UNUSED(j);
+    UNUSED(index);
     print_trace();
     assert(0);
     return NULL;
 }
 __attribute__((weak)) struct json_pair_t *jsonext_obj_delete(union json_t *j, const char *key) {
+    UNUSED(j);
+    UNUSED(key);
     print_trace();
     assert(0);
     return NULL;
 }
 __attribute__((weak)) union json_t *jsonext_arr_delete(union json_t *j, size_t index) {
+    UNUSED(j);
+    UNUSED(index);
     print_trace();
     assert(0);
     return NULL;
 }
 __attribute__((weak)) size_t jsonext_obj_length(union json_t *j) {
+    UNUSED(j);
     print_trace();
     assert(0);
     return 0;
 }
 __attribute__((weak)) size_t jsonext_arr_length(union json_t *j) {
+    UNUSED(j);
     print_trace();
     assert(0);
     return 0;
 }
 
 __attribute__((weak)) size_t jsonext_obj_capacity(union json_t *j) {
+    UNUSED(j);
     print_trace();
     assert(0);
     return 0;
 }
 __attribute__((weak)) size_t jsonext_arr_capacity(union json_t *j) {
+    UNUSED(j);
     print_trace();
     assert(0);
     return 0;
 }
 __attribute__((weak)) void jsonext_obj_iter(union json_t *j, json_obj_iter_cb f, void *fargs) {
+    UNUSED(j);
+    UNUSED(f);
+    UNUSED(fargs);
     print_trace();
     assert(0);
 }
 __attribute__((weak)) struct json_pair_t *jsonext_obj_iter_first(union json_t *j) {
+    UNUSED(j);
     print_trace();
     assert(0);
     return NULL;
 }
 __attribute__((weak)) struct json_pair_t *jsonext_obj_iter_next(union json_t *j, struct json_pair_t *pair) {
+    UNUSED(j);
+    UNUSED(pair);
     print_trace();
     assert(0);
     return NULL;
 }
 __attribute__((weak)) void jsonext_arr_iter(union json_t *j, json_arr_iter_cb f, void *fargs) {
+    UNUSED(j);
+    UNUSED(f);
+    UNUSED(fargs);
     print_trace();
     assert(0);
 }
@@ -116,7 +152,7 @@ __attribute__((weak)) void jsonext_arr_iter(union json_t *j, json_arr_iter_cb f,
 // SECTION: JSON COMMON FUNCTION
 // --------------------------------------------------
 
-struct json_tok_t __json_dup_term_tok(struct json_tok_t t) {
+struct json_tok_t json_dup_term_tok(struct json_tok_t t) {
     size_t textSize = 0;
     char *text = NULL;
 
@@ -133,7 +169,7 @@ struct json_tok_t __json_dup_term_tok(struct json_tok_t t) {
     return t;
 }
 
-union json_t __json_dup(union json_t j) {
+union json_t json_dup(union json_t j) {
     union json_t res = {.type = JT_MISSING};
 
     switch (j.type) {
@@ -145,7 +181,7 @@ union json_t __json_dup(union json_t j) {
     case JT_UINT:
     case JT_FLOAT:
     case JT_DOUBLE: {
-        res.tok = __json_dup_term_tok(j.tok);
+        res.tok = json_dup_term_tok(j.tok);
         break;
     }
     case JT_ARRAY: {
@@ -155,7 +191,7 @@ union json_t __json_dup(union json_t j) {
             union json_t *it = jsonext_arr_get(&j, i);
 
             union json_t *new_value = (union json_t *)malloc(sizeof(union json_t));
-            *new_value = __json_dup(*it);
+            *new_value = json_dup(*it);
 
             jsonext_arr_append(&res, new_value);
         }
@@ -168,11 +204,11 @@ union json_t __json_dup(union json_t j) {
         struct json_pair_t *it = jsonext_obj_iter_first(&j);
         
         for (i = 0; it != NULL && i < jsonext_obj_length(&j); i++) { // prevent 
-            printf("%s:%d %p %s\n", __FUNCTION__, __LINE__,it,it->key);
+            printf("%s:%d %p %s\n", __func__, __LINE__,it,it->key);
 
             struct json_pair_t *new_pair = (struct json_pair_t *)malloc(sizeof(struct json_pair_t));
-            new_pair->key = strdup(it->key);
-            new_pair->value = __json_dup(it->value);
+            new_pair->key = json_strdup(it->key);
+            new_pair->value = json_dup(it->value);
 
             jsonext_obj_insert(&res, new_pair);
 
@@ -180,13 +216,13 @@ union json_t __json_dup(union json_t j) {
         }
 
         if (i != jsonext_obj_length(&j)) {
-            printf("%s:%d Bug Dup Sanity Check Fail type=%s key=%s\n", __FUNCTION__, __LINE__, json_type2str(j.type), it->key);
+            printf("%s:%d Bug Dup Sanity Check Fail type=%s key=%s\n", __func__, __LINE__, json_type2str(j.type), it->key);
         }
 
         break;
     }
     default:
-        fprintf(stderr, "%s: unsupport token <%d|%s>", __FUNCTION__, j.type, json_type2str(j.type));
+        fprintf(stderr, "%s: unsupport token <%d|%s>", __func__, j.type, json_type2str(j.type));
         print_trace();
         break;
     }
@@ -347,7 +383,7 @@ void json_clean(union json_t *j) {
         break;
     }
     default:
-        fprintf(stderr, "%s: unsupport token <%d|%s>", __FUNCTION__, j->type, json_type2str(j->type));
+        fprintf(stderr, "%s: unsupport token <%d|%s>", __func__, j->type, json_type2str(j->type));
         break;
     }
 }
@@ -373,7 +409,7 @@ union json_t *__json_get_from_obj(union json_t j, const char *key) {
 void __json_delete_from_obj(union json_t *j, const char *key) { 
     struct json_pair_t *p = jsonext_obj_delete(j, key);
     if (p) {
-        printf("%s:%d Free key=%s\n", __FUNCTION__, __LINE__, p->key);
+        printf("%s:%d Free key=%s\n", __func__, __LINE__, p->key);
         free(p->key);
         json_clean(&p->value);
         free(p);
@@ -390,17 +426,17 @@ int __json_set(union json_t *j, const char *key, union json_t value, bool copy_v
     union json_t *exist_value = __json_get_from_obj(*j, key);
 
     if (exist_value) {
-        printf("%s:%d Obj Key Exist key=%s\n", __FUNCTION__, __LINE__, key);
+        printf("%s:%d Obj Key Exist key=%s\n", __func__, __LINE__, key);
         json_clean(exist_value);
-        *exist_value = copy_value ? __json_dup(value) : value;
+        *exist_value = copy_value ? json_dup(value) : value;
         return 1;
     }
 
     struct json_pair_t *new_pair = (struct json_pair_t *)malloc(sizeof(struct json_pair_t));
-    new_pair->key = strdup(key);
-    new_pair->value = copy_value ? __json_dup(value) : value;
+    new_pair->key = json_strdup(key);
+    new_pair->value = copy_value ? json_dup(value) : value;
 
-    printf("%s:%d Obj insert key=%s\n", __FUNCTION__, __LINE__, key);
+    printf("%s:%d Obj insert key=%s\n", __func__, __LINE__, key);
     jsonext_obj_insert(j, new_pair);
 
     return 0;
@@ -416,7 +452,7 @@ int __json_set_i16(union json_t *j, const char *key, int16_t value) {
     return __json_set(j, key, JSON_INT(value), false);
 }
 int __json_set_i32(union json_t *j, const char *key, int32_t value) {
-    printf("%s:%d key=%s\n", __FUNCTION__, __LINE__, key);
+    printf("%s:%d key=%s\n", __func__, __LINE__, key);
     return __json_set(j, key, JSON_INT(value), false);
 }
 int __json_set_i64(union json_t *j, const char *key, int64_t value) {
@@ -441,23 +477,23 @@ int __json_set_f64(union json_t *j, const char *key, double value) {
     return __json_set(j, key, JSON_DOUBLE(value), false);
 }
 int __json_set_obj(union json_t *j, const char *key, struct json_obj_t value) {
-    return __json_set(j, key, (union json_t)value, true);
+    return __json_set(j, key, JSON_OBJ(value), true);
 }
 int __json_set_obj_p(union json_t *j, const char *key, struct json_obj_t *value) {
-    return __json_set(j, key, (union json_t) * value, false);
+    return __json_set(j, key, JSON_OBJ( * value), false);
 }
 int __json_set_arr(union json_t *j, const char *key, struct json_arr_t value) {
-    return __json_set(j, key, (union json_t)value, true);
+    return __json_set(j, key, JSON_ARR(value), true);
 }
 int __json_set_arr_p(union json_t *j, const char *key, struct json_arr_t *value) {
-    return __json_set(j, key, (union json_t) * value, false);
+    return __json_set(j, key, JSON_ARR(* value), false);
 }
 int __json_set_token(union json_t *j, const char *key, struct json_tok_t value) {
     bool copy_value = value.type == JT_STRING || value.type == JT_NUMBER;
-    return __json_set(j, key, (union json_t)value, copy_value);
+    return __json_set(j, key, JSON_TOK(value), copy_value);
 }
 int __json_set_token_p(union json_t *j, const char *key, struct json_tok_t *value) {
-    return __json_set(j, key, (union json_t) * value, false);
+    return __json_set(j, key, JSON_TOK(* value), false);
 }
 int __json_set_value(union json_t *j, const char *key, union json_t value) { return __json_set(j, key, value, true); }
 int __json_set_value_p(union json_t *j, const char *key, union json_t *value) {
@@ -483,7 +519,7 @@ union json_t *__json_get_from_arr(union json_t j, size_t i) { return jsonext_arr
 void __json_delete_from_arr(union json_t *j, size_t i) { 
     union json_t *it = jsonext_arr_delete(j, i);
     if (it) {
-        printf("%s:%d Array i=%ld\n", __FUNCTION__, __LINE__, i);
+        printf("%s:%d Array i=%ld\n", __func__, __LINE__, i);
         json_clean(it);
         free(it);
     }
@@ -494,7 +530,7 @@ int __json_append(union json_t *j, union json_t value, bool copy_value) {
         return 1;
 
     union json_t *new_value = (union json_t *)malloc(sizeof(union json_t));
-    *new_value = copy_value ? __json_dup(value) : value;
+    *new_value = copy_value ? json_dup(value) : value;
 
     jsonext_arr_append(j, new_value);
 
@@ -513,12 +549,12 @@ int __json_append_u32(union json_t *j, uint32_t value) { return __json_append(j,
 int __json_append_u64(union json_t *j, uint64_t value) { return __json_append(j, JSON_UINT(value), false); }
 int __json_append_f32(union json_t *j, float value) { return __json_append(j, JSON_FLOAT(value), false); }
 int __json_append_f64(union json_t *j, double value) { return __json_append(j, JSON_DOUBLE(value), false); }
-int __json_append_obj(union json_t *j, struct json_obj_t value) { return __json_append(j, JSON(value), true); }
-int __json_append_obj_p(union json_t *j, struct json_obj_t *value) { return __json_append(j, JSON(*value), false); }
-int __json_append_arr(union json_t *j, struct json_arr_t value) { return __json_append(j, JSON(value), true); }
-int __json_append_arr_p(union json_t *j, struct json_arr_t *value) { return __json_append(j, JSON(*value), false); }
-int __json_append_token(union json_t *j, struct json_tok_t value) { return __json_append(j, JSON(value), true); }
-int __json_append_token_p(union json_t *j, struct json_tok_t *value) { return __json_append(j, JSON(*value), false); }
+int __json_append_obj(union json_t *j, struct json_obj_t value) { return __json_append(j, JSON_OBJ(value), true); }
+int __json_append_obj_p(union json_t *j, struct json_obj_t *value) { return __json_append(j, JSON_OBJ(*value), false); }
+int __json_append_arr(union json_t *j, struct json_arr_t value) { return __json_append(j, JSON_ARR(value), true); }
+int __json_append_arr_p(union json_t *j, struct json_arr_t *value) { return __json_append(j, JSON_ARR(*value), false); }
+int __json_append_token(union json_t *j, struct json_tok_t value) { return __json_append(j, JSON_TOK(value), true); }
+int __json_append_token_p(union json_t *j, struct json_tok_t *value) { return __json_append(j, JSON_TOK(*value), false); }
 int __json_append_value(union json_t *j, union json_t value) { return __json_append(j, value, true); }
 int __json_append_value_p(union json_t *j, union json_t *value) { return __json_append(j, *value, false); }
 
@@ -565,7 +601,7 @@ struct json_lexer_context_t *json_create_lexer(FILE *stream) {
 
 void json_print_lexer(struct json_lexer_context_t *ctx) {
     struct json_lexer_token_t t;
-    for (int i = 0; i < ctx->tokens.length; i++) {
+    for (size_t i = 0; i < ctx->tokens.length; i++) {
         t = ctx->tokens.list[i];
         if (t.text) {
             printf("@%u#%u,%u<%u|%s>%u:%u %s\n", t.index, t.start, t.end, t.type, json_lexer_type2str(t.type), t.row,
@@ -590,7 +626,7 @@ void json_clean_lexer(struct json_lexer_context_t *ctx) {
     }
 
     free(ctx);
-};
+}
 
 static int next_char(struct json_lexer_context_t *ctx) {
     if (!ctx->stream) {

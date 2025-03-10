@@ -66,18 +66,10 @@ struct json_pair_t {
     union json_t value;
 };
 
-// struct json_values_t {
-//     size_t length;
-//     size_t capacity;
-//     union json_t *list[];
-// };
-// struct json_pairs_t {
-//     size_t length;
-//     size_t capacity;
-//     struct json_pair_t *list;
-// };
-
 #define JSON(x) ((union json_t)(x))
+#define JSON_TOK(x) ((union json_t){.tok = (x)})
+#define JSON_OBJ(x) ((union json_t){.obj = (x)})
+#define JSON_ARR(x) ((union json_t){.arr = (x)})
 #define JSON_ARRAY ((union json_t){.arr = {.type = JT_ARRAY}})
 #define JSON_OBJECT ((union json_t){.obj = {.type = JT_OBJECT}})
 #define JSON_NULL ((union json_t){.tok = {.type = JT_NULL}})
@@ -137,13 +129,8 @@ struct json_pair_t *jsonext_obj_iter_next(union json_t *j, struct json_pair_t *p
 // --------------------------------------------------
 //                JSON COMMON FUNCTION
 // --------------------------------------------------
-#define json_dup(x)                                                                                                    \
-    _Generic((x),                                                                                                      \
-        struct json_tok_t: __json_dup((union json_t)x).tok,                                                            \
-        struct json_arr_t: __json_dup((union json_t)x).arr,                                                            \
-        struct json_obj_t: __json_dup((union json_t)x).obj,                                                            \
-        default: __json_dup(x))
-union json_t __json_dup(union json_t t);
+
+union json_t json_dup(union json_t t);
 
 #define json_get(j, key) _Generic((key), char *: __json_get_from_obj, default: __json_get_from_arr)((j), (key))
 
