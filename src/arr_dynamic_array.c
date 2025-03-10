@@ -43,9 +43,9 @@ struct my_array *my_array_new(size_t capacity) {
 }
 
 bool my_array_expand(struct my_array *m, size_t new_size) {
-    size_t old_size;
     union json_t **curr;
 
+    if (!m) return false;
     if (m->length > new_size) return false;
 
     /* Setup the new elements */
@@ -55,10 +55,9 @@ bool my_array_expand(struct my_array *m, size_t new_size) {
     curr = m->data;
     m->data = temp;
 
-    old_size = m->capacity;
     m->capacity = new_size;
 
-    memcpy(m->data, curr, old_size * sizeof(union json_t *));
+    memcpy(m->data, curr, m->length * sizeof(union json_t *));
 
     free(curr);
 
@@ -81,6 +80,7 @@ union json_t *my_array_get(struct my_array *m, size_t i) {
 union json_t *my_array_delete(struct my_array *m, size_t i) {
     union json_t *del;
 
+    if (!m) return NULL;
     if (i >= m->length) return NULL;
 
     /* Return deleted element's pointer */
@@ -92,7 +92,8 @@ union json_t *my_array_delete(struct my_array *m, size_t i) {
         m->data[i] = m->data[i+1];
     }
 
-    if (m->capacity > ARRAY_MIN_SIZE && m->length >= m->capacity / 4) {
+    if (m->capacity / 2 >= ARRAY_MIN_SIZE && m->length <= m->capacity / 4) {
+        printf("%s:%d length=%ld capacity=%ld\n", __FUNCTION__, __LINE__, m->length, m->capacity);
         my_array_expand(m, m->capacity / 2);
     }
 
@@ -122,8 +123,9 @@ union json_t *jsonext_arr_delete(union json_t *j, size_t index) {
     return my_array_delete(j->arr.values, index);
 }
 
-void jsonext_arr_clean(union json_t *j, size_t index) {
+void jsonext_arr_clean(union json_t *j) {
     my_array_free(j->arr.values);
+    j->arr.values = NULL;
 }
 
 size_t jsonext_arr_length(union json_t *j) {

@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -65,10 +66,8 @@ unsigned long hash_str(const char *str) {
  * to store the point to the item, or Table Size.
  */
 size_t hashmap_hash(struct hashmap_map *m, const char *key) {
-    size_t curr;
-
     /* Find the best index */
-    curr = hash_str(key);
+    size_t curr = hash_str(key) % m->table_size;
 
     /* Linear probling */
     for (size_t i = 0; i < m->table_size; i++) {
@@ -111,7 +110,9 @@ bool hashmap_rehash(struct hashmap_map *m, size_t new_size) {
 
     /* Rehash the elements */
     for (size_t i = 0; i < old_size; i++) {
-        hashmap_put(m, curr[i].key, curr[i].value);
+        if (curr[i].in_use) {
+            hashmap_put(m, curr[i].key, curr[i].value);
+        }
     }
 
     free(curr);
@@ -187,7 +188,7 @@ struct json_pair_t *hashmap_get_first(struct hashmap_map *m) {
  */
 struct json_pair_t *hashmap_get_next(struct hashmap_map *m, struct json_pair_t *prev) {
     /* Linear probing, if necessary */
-    for (size_t i = hashmap_hash(m, prev->key); i < m->table_size; i++) {
+    for (size_t i = hashmap_hash(m, prev->key) + 1; i < m->table_size; i++) {
         if (m->data[i].in_use) {
             return m->data[i].value;
         }
@@ -269,7 +270,8 @@ void jsonext_obj_insert(union json_t *j, struct json_pair_t *pair) {
     if (!j->obj.pairs) {
         j->obj.pairs = hashmap_new(HASHMAP_MIN_SIZE);
     }
-    hashmap_put(j->obj.pairs, key, (void *)pair);
+    bool put_res = hashmap_put(j->obj.pairs, key, pair);
+    printf("%s:%d result=%d\n", __FUNCTION__, __LINE__, put_res);
 }
 
 struct json_pair_t *jsonext_obj_get(union json_t *j, const char *key) {
@@ -295,12 +297,8 @@ size_t jsonext_obj_capacity(union json_t *j) {
 }
 
 void jsonext_obj_clean(union json_t *j) {
-    if (hashmap_capacity(j->obj.pairs) != 0) {
-        // TODO move into json.c
-        printf("%s:%d: ERRRRRRRRRRRRRRRRRRRRR", __FUNCTION__, __LINE__);
-        assert(0);
-    }
     hashmap_free(j->obj.pairs);
+    j->obj.pairs = NULL;
 }
 
 void jsonext_obj_iter(union json_t *j, json_obj_iter_cb f, void *fargs) {
