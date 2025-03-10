@@ -58,13 +58,31 @@ void obj_test() {
     json_set(&obj, "Name", "BBB");
     json_set(&obj, "Age", 123);
     json_set(&obj, "Age", 123.123);
-    json_set(&obj, "Bool", true);
+    json_set(&obj, "Bool", JSON_BOOL(true));
     json_set(&obj, "Null", JSON_NULL);
-    json_set(&obj, "Array", JSON_ARRAY);
     json_set(&obj, "Object", JSON_OBJECT);
-    json_set(&obj, "Bool", JSON_EMPTY);
 
-    // json_obj_remove(&obj, (json_t)JSON_STR("BBB"));
+    json_set(&obj, "Delete1", "JSON_EMPTY");
+    json_set(&obj, "Delete1", JSON_EMPTY);
+    json_set(&obj, "Delete2", "JSON_EMPTY");
+    json_del(&obj, "Delete2");
+
+    json_set(&obj, "Array", JSON_ARRAY);
+    json_append(json_get(obj, "Array"), 123);
+    json_append(json_get(obj, "Array"), "INDEX = 1 DELETE LATER");
+    json_append(json_get(obj, "Array"), 123.456);
+    json_append(json_get(obj, "Array"), JSON_NUM("123.456"));
+    json_append(json_get(obj, "Array"), JSON_NULL);
+    json_append(json_get(obj, "Array"), JSON_TRUE);
+    json_append(json_get(obj, "Array"), JSON_FALSE);
+    json_append(json_get(obj, "Array"), JSON_BOOL(true));
+    json_append(json_get(obj, "Array"), JSON_BOOL(false));
+    json_del(json_get(obj, "Array"), 1);
+    json_del(json_get(obj, "Array"), json_length(*json_get(obj, "Array")) - 1);
+
+    union json_t arr_dup = json_dup(*json_get(obj, "Array"));
+    json_append(&arr_dup, "DUP");
+    json_set(&obj, "Arr Dup", &arr_dup);
 
     union json_t innerObj = JSON_OBJECT;
     json_set(&innerObj, "inner2AGE", 789);
@@ -74,18 +92,31 @@ void obj_test() {
     innerObj = JSON_OBJECT;
     json_set(&innerObj, "inner1AGE", 456);
     json_set(&innerObj, "inner1Bool", false);
+    printf("%s:%d\n", __FUNCTION__, __LINE__);
     json_set(&obj, "inner copy", innerObj);
+    printf("OK\n");
     json_clean(&innerObj);
+    printf("OK\n");
 
-    // json_set((json_obj_t *)__json_obj_get(obj, "Object"), "Test1", "OK");
-    // json_set(&__json_obj_get(obj, "Object")->obj, "Test2", "OK");
+    json_set(json_get(obj, "Object"), "Test1", "OK1");
+    json_set(json_get(obj, "Object"), "Test1", "OK123");
+    json_set(json_get(obj, "Object Not Exist"), "Test1", "Fail");
 
-    // json_obj_t obj3 = __obj_get_copy(obj, "Object").obj;
-    // json_set(&obj3, "Test13", "OK");
-    // json_set(&obj3, "Test23", "OK");
-    // freeValue((json_t*)&obj3);
-    // printf("Name: %s\n", __obj_get(obj, "Name").stringToken.text);
-    // printf("Name: %s\n", __obj_get(obj, "Name").stringToken.text);
+    union json_t obj3 = json_dup(obj);
+    json_set(&obj3, "Test1", "OK");
+    json_clean(&obj3);
+    json_set(&obj3, "Test2", "OK");
+
+    printf("Name=%p type=%s value=%s\n",
+        json_get(obj3, "Test1"),
+        (json_get(obj3, "Test1") ? json_type2str(json_get(obj3, "Test1")->type) : ""),
+        (json_get(obj3, "Test1") ? json_get(obj3, "Test1")->tok.text : ""));
+    printf("Name=%p type=%s value=%s\n", json_get(obj3, "Test2"), 
+        (json_get(obj3, "Test2") ? json_type2str(json_get(obj3, "Test2")->type) : ""),
+        (json_get(obj3, "Test2") ? json_get(obj3, "Test2")->tok.text : ""));
+
+    json_print(obj3);
+    json_clean(&obj3);
 
     json_print((union json_t)obj);
     json_clean(&obj);
@@ -165,18 +196,18 @@ int main(int argc, char *argv[]) {
 
     obj_test();
 
-    struct json_lexer_context_t *lexer_ctx = json_create_lexer(memstream);
-    json_execute_lexer(lexer_ctx);
-    // printLexerToken(lexer_ctx);
+    // struct json_lexer_context_t *lexer_ctx = json_create_lexer(memstream);
+    // json_execute_lexer(lexer_ctx);
+    // // printLexerToken(lexer_ctx);
     
-    fclose(memstream);
-    free(buffer);
+    // fclose(memstream);
+    // free(buffer);
     
-    // struct ParserContext *parser_ctx = initJsonParser(lexer_ctx);
-    // struct valueToken *value = jsonParser(parser_ctx);
+    // // struct ParserContext *parser_ctx = initJsonParser(lexer_ctx);
+    // // struct valueToken *value = jsonParser(parser_ctx);
 
-    // freeJsonParser(parser_ctx);
-    json_clean_lexer(lexer_ctx);
+    // // freeJsonParser(parser_ctx);
+    // json_clean_lexer(lexer_ctx);
 
     // // objInsert(&parser_ctx.container->root.value.obj, "AAA", (struct valueToken) { .stringToken = { .type = T_STRING, .text = "BBB" } });
     // printToken(&lexer_ctx);

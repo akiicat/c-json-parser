@@ -4,6 +4,8 @@ build:
 debug_build:
 	gcc -fsanitize=address -Wall -g -rdynamic -I./include \
 	main.c \
+	src/obj_hash_linear_probing.c \
+	src/arr_dynamic_array.c \
 	json.c
 
 # debug_build:
