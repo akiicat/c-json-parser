@@ -1,0 +1,5 @@
+option('disable_tests',
+  type : 'boolean',
+  value : false,
+  description : 'Disable building tests'
+)

@@ -1,2 +1,15 @@
 a.out
 .clangd
+
+# Ignore build directory (adjust if you use a different one)
+build/
+
+# Ignore Meson internal directories
+meson-logs/
+meson-private/
+
+# Ignore all subdirectories in subprojects…
+subprojects/*
+
+# …but track the wrap files that end with .wrap
+!subprojects/*.wrap
