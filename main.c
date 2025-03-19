@@ -65,20 +65,20 @@ void obj_test() {
     json_set(&obj, "Delete1", "JSON_EMPTY");
     json_set(&obj, "Delete1", JSON_EMPTY);
     json_set(&obj, "Delete2", "JSON_EMPTY");
-    json_del(&obj, "Delete2");
+    json_delete(&obj, "Delete2");
 
     json_set(&obj, "Array", JSON_ARRAY);
     json_append(json_get(obj, "Array"), 123);
     json_append(json_get(obj, "Array"), "INDEX = 1 DELETE LATER");
     json_append(json_get(obj, "Array"), 123.456);
-    json_append(json_get(obj, "Array"), JSON_NUM("123.456"));
+    json_append(json_get(obj, "Array"), JSON_NUMBER("123.456"));
     json_append(json_get(obj, "Array"), JSON_NULL);
     json_append(json_get(obj, "Array"), JSON_TRUE);
     json_append(json_get(obj, "Array"), JSON_FALSE);
     json_append(json_get(obj, "Array"), JSON_BOOL(true));
     json_append(json_get(obj, "Array"), JSON_BOOL(false));
-    json_del(json_get(obj, "Array"), 1);
-    json_del(json_get(obj, "Array"), json_length(*json_get(obj, "Array")) - 1);
+    json_delete(json_get(obj, "Array"), 1);
+    json_delete(json_get(obj, "Array"), json_length(*json_get(obj, "Array")) - 1);
 
     union json_t arr_dup = json_dup(*json_get(obj, "Array"));
     json_append(&arr_dup, "DUP");
@@ -118,7 +118,22 @@ void obj_test() {
     json_print(obj3);
     json_clean(&obj3);
 
-    json_print((union json_t)obj);
+    // json_print(obj);
+    // json_pprint(obj, 4);
+    // json_ppprint(obj, .indent = 8, .offset = 0);
+
+    // char *s = json_dumps(obj, (struct json_config) { .indent = 4 });
+    // printf("%s\n", s);
+    // free(s);
+
+    // FILE *f = fopen("test.json", "w");
+    // json_dump(obj, f, (struct json_config) { .indent = 4 });
+    // fclose(f);
+
+    printf("-------------------\n");
+
+    json_dump(obj, stderr, .indent = 4);
+
     json_clean(&obj);
 }
 
@@ -194,22 +209,23 @@ int main(int argc, char *argv[]) {
     //     fseek(stream, 0, SEEK_SET);
     // }
 
-    obj_test();
+    // obj_test();
 
-    // struct json_lexer_context_t *lexer_ctx = json_create_lexer(memstream);
-    // json_execute_lexer(lexer_ctx);
-    // // printLexerToken(lexer_ctx);
+    struct json_lexer_context_t *lexer_ctx = json_create_lexer(buffer);
+    json_execute_lexer(lexer_ctx);
+    json_print_lexer(lexer_ctx);
+    json_delete_lexer(lexer_ctx);
     
-    // fclose(memstream);
-    // free(buffer);
-    
-    // // struct ParserContext *parser_ctx = initJsonParser(lexer_ctx);
-    // // struct valueToken *value = jsonParser(parser_ctx);
+    fclose(memstream);
+    free(buffer);
 
-    // // freeJsonParser(parser_ctx);
-    // json_clean_lexer(lexer_ctx);
+        // struct ParserContext *parser_ctx = initJsonParser(lexer_ctx);
+    // struct valueToken *value = jsonParser(parser_ctx);
 
-    // // objInsert(&parser_ctx.container->root.value.obj, "AAA", (struct valueToken) { .stringToken = { .type = T_STRING, .text = "BBB" } });
+    // freeJsonParser(parser_ctx);
+
+
+    // objInsert(&parser_ctx.container->root.value.obj, "AAA", (struct valueToken) { .stringToken = { .type = T_STRING, .text = "BBB" } });
     // printToken(&lexer_ctx);
     // printTree(&parser_ctx);
 

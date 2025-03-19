@@ -2,11 +2,19 @@ build:
 	gcc -Wall -O2 -rdynamic -I./include main.c src/jsonLexer.c src/jsonParser.c src/jsonListener.c src/jsonEditor.c src/debug.c
 
 debug_build:
-	gcc -fsanitize=address -Wall -g -rdynamic -I./include \
+	gcc \
+	  	-fsanitize=address   \
+		-fno-omit-frame-pointer  \
+        -fsanitize=address  \
+        -fsanitize=undefined  \
+        -fsanitize=float-cast-overflow  \
+        -fsanitize-address-use-after-scope  \
+        -fno-sanitize-recover  \
+	-Wall -g -rdynamic -I./include \
 	main.c \
 	src/obj_hash_linear_probing.c \
 	src/arr_dynamic_array.c \
-	json.c
+	src/json.c
 
 # debug_build:
 # 	gcc -fsanitize=address -Wall -g -rdynamic -I./include \

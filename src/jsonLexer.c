@@ -9,22 +9,23 @@
 #include "debug.h"
 
 const char *LexerTypeString[] = {
-    "T_MISSING",
-    "T_STRING",
-    "T_NUMBER",
-    "T_COMMA",
-    "T_COLON",
-    "T_LPAIR",
-    "T_RPAIR",
-    "T_LARRAY",
-    "T_RARRAY",
-    "T_TRUE",
-    "T_FALSE",
-    "T_NULL",
+    "JLT_MISSING",
+    "JLT_STRING",
+    "JLT_NUMBER",
+    "JLT_COMMA",
+    "JLT_COLON",
+    "JLT_LPAIR",
+    "JLT_RPAIR",
+    "JLT_LARRAY",
+    "JLT_RARRAY",
+    "JLT_TRUE",
+    "JLT_FALSE",
+    "JLT_NULL",
+    "JLT_LEXER_TOKEN_SIZE",
 };
 
-const char *lextype2str(enum json_lexer_type type) {
-    if (type >= LT_MISSING && type < LEXER_TOKEN_SIZE) {
+const char *lextype2str(enum json_lexer_token_type_t type) {
+    if (type >= JLT_MISSING && type < JLT_LEXER_TOKEN_SIZE) {
         return LexerTypeString[type];
     }
 
@@ -50,7 +51,7 @@ struct json_lexer_context_t *initJsonLexer(FILE *stream) {
     return lexer_ctx;
 }
 
-void freeJsonLexer(struct json_lexer_context_t *lexer_ctx) {
+void free_json_lexer(struct json_lexer_context_t *lexer_ctx) {
     if (lexer_ctx && lexer_ctx->tokens.list) {
 
         // Free each token's text in reverse order
@@ -198,7 +199,7 @@ void getTokenLPAIR(struct json_lexer_context_t *ctx) {
     match(ctx, '{');
 
     insertToken(ctx, & (struct json_lexer_token_t) {
-        .type = LT_LPAIR,
+        .type = JLT_LPAIR,
         .start = start,
         .end = end,
         .column = startCol,
@@ -215,7 +216,7 @@ void getTokenRPAIR(struct json_lexer_context_t *ctx) {
     match(ctx, '}');
 
     insertToken(ctx, & (struct json_lexer_token_t) {
-        .type = LT_RPAIR,
+        .type = JLT_RPAIR,
         .start = start,
         .end = end,
         .column = startCol,
@@ -232,7 +233,7 @@ void getTokenLARRAY(struct json_lexer_context_t *ctx) {
     match(ctx, '[');
 
     insertToken(ctx, & (struct json_lexer_token_t) {
-        .type = LT_LARRAY,
+        .type = JLT_LARRAY,
         .start = start,
         .end = end,
         .column = startCol,
@@ -249,7 +250,7 @@ void getTokenRARRAY(struct json_lexer_context_t *ctx) {
     match(ctx, ']');
 
     insertToken(ctx, & (struct json_lexer_token_t) {
-        .type = LT_RARRAY,
+        .type = JLT_RARRAY,
         .start = start,
         .end = end,
         .column = startCol,
@@ -266,7 +267,7 @@ void getTokenCOMMA(struct json_lexer_context_t *ctx) {
     match(ctx, ',');
 
     insertToken(ctx, & (struct json_lexer_token_t) {
-        .type = LT_COMMA,
+        .type = JLT_COMMA,
         .start = start,
         .end = end,
         .column = startCol,
@@ -283,7 +284,7 @@ void getTokenCOLON(struct json_lexer_context_t *ctx) {
     match(ctx, ':');
 
     insertToken(ctx, & (struct json_lexer_token_t) {
-        .type = LT_COLON,
+        .type = JLT_COLON,
         .start = start,
         .end = end,
         .column = startCol,
@@ -312,7 +313,7 @@ void getTokenSTRING(struct json_lexer_context_t *ctx) {
     match(ctx, '"');
 
     insertToken(ctx, & (struct json_lexer_token_t) {
-        .type = LT_STRING,
+        .type = JLT_STRING,
         .start = start,
         .end = end,
         .column = startCol,
@@ -335,7 +336,7 @@ void getTokenNUMBER(struct json_lexer_context_t *ctx) {
     end = ctx->offset - 1;
 
     insertToken(ctx, & (struct json_lexer_token_t) {
-        .type = LT_NUMBER,
+        .type = JLT_NUMBER,
         .start = start,
         .end = end,
         .column = startCol,
@@ -354,7 +355,7 @@ void getTokenTRUE(struct json_lexer_context_t *ctx) {
     end = ctx->offset - 1;
 
     insertToken(ctx, & (struct json_lexer_token_t) {
-        .type = LT_TRUE,
+        .type = JLT_TRUE,
         .start = start,
         .end = end,
         .column = startCol,
@@ -373,7 +374,7 @@ void getTokenFALSE(struct json_lexer_context_t *ctx) {
     end = ctx->offset - 1;
 
     insertToken(ctx, & (struct json_lexer_token_t) {
-        .type = LT_FALSE,
+        .type = JLT_FALSE,
         .start = start,
         .end = end,
         .column = startCol,
@@ -392,7 +393,7 @@ void getTokenNULL(struct json_lexer_context_t *ctx) {
     end = ctx->offset - 1;
 
     insertToken(ctx, & (struct json_lexer_token_t) {
-        .type = LT_NULL,
+        .type = JLT_NULL,
         .start = start,
         .end = end,
         .column = startCol,
@@ -401,7 +402,7 @@ void getTokenNULL(struct json_lexer_context_t *ctx) {
     });
 }
 
-void jsonLexer(struct json_lexer_context_t *ctx) {
+void json_lexer(struct json_lexer_context_t *ctx) {
 
     nextChar(ctx);
 

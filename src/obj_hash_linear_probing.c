@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../json.h"
+#include "json.h"
 
 /* This value is between 0 and 1. If it defines 0.3, it means at least 70% of space will be waste. */
 #define HASHMAP_FILL_FACTOR 0.5
@@ -256,11 +256,7 @@ struct json_pair_t *hashmap_delete(struct hashmap_map *m, const char *key) {
 }
 
 void jsonext_obj_new(union json_t *j, size_t capacity) {
-    if (!j->obj.pairs) {
-        j->obj.pairs = hashmap_new(capacity);
-    } else {
-        hashmap_rehash(j->obj.pairs, capacity);
-    }
+    j->obj.pairs = hashmap_new(capacity);
 }
 
 // don't need dup key and value, but it can give value a unique address by malloc

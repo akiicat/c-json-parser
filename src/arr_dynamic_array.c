@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../json.h"
+#include "json.h"
 
 #define ARRAY_MIN_SIZE 8
 
@@ -101,11 +101,7 @@ union json_t *my_array_delete(struct my_array *m, size_t i) {
 }
 
 void jsonext_arr_new(union json_t *j, size_t capacity) {
-    if (!j->arr.values) {
-        j->arr.values = my_array_new(ARRAY_MIN_SIZE);
-    } else {
-        my_array_expand(j->arr.values, capacity);
-    }
+    j->arr.values = my_array_new(capacity);
 }
 
 void jsonext_arr_append(union json_t *j, union json_t *value) {
