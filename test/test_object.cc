@@ -482,7 +482,7 @@ TEST(JsonObjectTest, SetReturnValue) {
 
     /* Assert */
     EXPECT_TRUE(res_1);
-    EXPECT_FALSE(res_2);
+    EXPECT_TRUE(res_2);
     EXPECT_FALSE(res_3);
     EXPECT_EQ(JT_OBJECT, jobj.type);
     EXPECT_EQ(1, json_length(jobj));
@@ -782,8 +782,8 @@ TEST(JsonObjectTest, SetEmptyToDelete) {
     json_set(&j, "D", 4);
 
     /* Act */
-    json_set(&j, "B", JSON_EMPTY);
-    json_set(&j, "D", JSON_EMPTY);
+    json_set(&j, "B", JSON_DELETE);
+    json_set(&j, "D", JSON_DELETE);
 
     /* Assert */
     EXPECT_EQ(JT_OBJECT, j.type);
@@ -796,4 +796,3 @@ TEST(JsonObjectTest, SetEmptyToDelete) {
     /* Clean */
     json_clean(&j);
 }
-

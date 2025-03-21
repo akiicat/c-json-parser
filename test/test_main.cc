@@ -8,6 +8,7 @@
 #include "test_array.cc"
 #include "test_object.cc"
 #include "test_lexer.cc"
+#include "test_parser.cc"
 
 int main(int argc, char **argv) {
   testing::InitGoogleTest(&argc, argv);

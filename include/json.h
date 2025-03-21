@@ -11,7 +11,6 @@ void print_trace();
 // --------------------------------------------------
 enum json_token_type_t {
     JT_MISSING,
-    JT_EMPTY,
     JT_STRING,
     JT_NUMBER,
     JT_BOOL,
@@ -78,7 +77,7 @@ struct json_pair_t {
 
 #ifndef __cplusplus
 #define JSON_MISSING ((union json_t){.tok = {.type = JT_MISSING}})
-#define JSON_EMPTY ((union json_t){.tok = {.type = JT_EMPTY}})
+#define JSON_DELETE ((union json_t){.tok = {.type = JT_MISSING}})
 #define JSON_ARRAY ((union json_t){.arr = {.type = JT_ARRAY}})
 #define JSON_OBJECT ((union json_t){.obj = {.type = JT_OBJECT}})
 #define JSON_NULL ((union json_t){.tok = {.type = JT_NULL}})
@@ -102,14 +101,12 @@ struct json_pair_t {
 #define json_is_null(j) ((j).type == JT_NULL)
 #define json_is_float(j) ((j).type == JT_FLOAT)
 #define json_is_terminal_token(j)                                                                                      \
-    ((j).type == JT_MISSING || (j).type == JT_EMPTY || (j).type == JT_NULL || (j).type == JT_BOOL || (j).type == JT_INT || \
-        (j).type == JT_UINT || (j).type == JT_FLOAT || (j).type == JT_STRING || (j).type == JT_NUMBER)
-#define json_is_empty(j) ((j).type == JT_EMPTY)
+    ((j).type == JT_NULL || (j).type == JT_BOOL || (j).type == JT_INT || (j).type == JT_UINT ||                        \
+     (j).type == JT_FLOAT || (j).type == JT_STRING || (j).type == JT_NUMBER)
+#define json_is_empty(j) (!(json_is_terminal_token(j) || json_is_array(j) || json_is_object(j)))
 #define json_is_missing(j) ((j).type == JT_MISSING)
 
 const char *json_token2str(enum json_token_type_t type);
-
-
 const char *json_type2str(enum json_token_type_t type);
 
 // --------------------------------------------------
@@ -329,7 +326,7 @@ struct json_lexer_container_t {
 
 struct json_lexer_context_t {
     struct json_lexer_container_t tokens;
-    int currentChar;
+    // int curchar;
     size_t offset;
     size_t column;
     size_t row;
@@ -356,12 +353,11 @@ struct json_parser_context_t {
 
 struct json_parser_context_t *json_create_parser(struct json_lexer_context_t *lexer);
 void json_delete_parser(struct json_parser_context_t *ctx);
-void json_execute_parser(struct json_parser_context_t *ctx);
-void json_print_parser(struct json_parser_context_t *ctx);
+void json_parse(struct json_parser_context_t *ctx);
 
 union json_t json_string(const char *input_text);
-union json_t json_load(const char *file_path);
-union json_t json_file(FILE *f);
+union json_t json_load(FILE *f);
+union json_t json_file(const char *file_path);
 // --------------------------------------------------
 //                  END JSON Parser
 // --------------------------------------------------

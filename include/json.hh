@@ -13,8 +13,8 @@ extern "C" {
 #define json_dump(j, f, ...) __json_dump((j), (f), {__VA_ARGS__})
 #define json_pprint(j, ...) __json_pprint((j), {__VA_ARGS__})
 
-constexpr union json_t JSON_EMPTY = {.type = JT_EMPTY};
 constexpr union json_t JSON_MISSING = {.type = JT_MISSING};
+constexpr union json_t JSON_DELETE = {.type = JT_MISSING};
 constexpr union json_t JSON_ARRAY = {.type = JT_ARRAY};
 constexpr union json_t JSON_OBJECT = {.type = JT_OBJECT};
 constexpr union json_t JSON_NULL = {.type = JT_NULL};

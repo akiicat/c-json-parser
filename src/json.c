@@ -44,7 +44,7 @@ char *json_strndup(const char *s, size_t n) {
 
     for (n1 = 0; n1 < n && s[n1] != '\0'; n1++)
         continue;
-    p = (char*)malloc(n + 1);
+    p = (char *)malloc(n + 1);
     if (p != NULL) {
         memcpy(p, s, n1);
         p[n1] = '\0';
@@ -56,7 +56,7 @@ char *json_strndup(const char *s, size_t n) {
 // SECTION: JSON TOKEN
 // --------------------------------------------------
 static const char *type_str[] = {
-    "JT_MISSING", "JT_EMPTY", "JT_STRING", "JT_NUMBER", "JT_BOOL",  "JT_NULL",
+    "JT_MISSING", "JT_STRING", "JT_NUMBER", "JT_BOOL",  "JT_NULL",
     "JT_INT",     "JT_UINT",  "JT_FLOAT",  "JT_OBJECT", "JT_ARRAY", "JT_TOKEN_SIZE",
 };
 
@@ -507,10 +507,10 @@ void __json_delete_from_obj(union json_t *j, const char *key) {
 }
 
 bool __json_set(union json_t *j, const char *key, size_t key_len, union json_t value, bool copy_value) {
-    if (!j || j->type != JT_OBJECT || value.type == JT_MISSING)
+    if (!j || j->type != JT_OBJECT)
         return false;
 
-    if (value.type == JT_EMPTY) {
+    if (value.type == JT_MISSING) {
         __json_delete_from_obj(j, key);
         return true;
     }
@@ -626,7 +626,7 @@ void __json_delete_from_arr(union json_t *j, long int i) {
 }
 
 bool __json_append(union json_t *j, union json_t value, bool copy_value) {
-    if (!j || j->type != JT_ARRAY || value.type == JT_MISSING || value.type == JT_EMPTY)
+    if (!j || j->type != JT_ARRAY || value.type == JT_MISSING)
         return false;
 
     union json_t *new_value = (union json_t *)malloc(sizeof(union json_t));
@@ -680,6 +680,7 @@ const char *json_lexer_type2str(enum json_lexer_token_type_t type) {
 struct json_lexer_context_t *json_create_lexer(const char *str) {
     struct json_lexer_context_t *ctx_p = (struct json_lexer_context_t *)malloc(sizeof(struct json_lexer_context_t));
 
+
     struct json_lexer_context_t ctx = {
         .tokens =
             {
@@ -687,9 +688,8 @@ struct json_lexer_context_t *json_create_lexer(const char *str) {
                 .capacity = 0,
                 .list = NULL,
             },
-        .currentChar = '\0',
         .offset = 0,
-        .column = 0,
+        .column = 1,
         .row = 1,
         .from_string = str,
         .from_string_len = strlen(str),
@@ -708,7 +708,7 @@ void json_print_lexer(struct json_lexer_context_t *ctx) {
                t.column);
 
         if (t.text) {
-            int textSize = t.end - t.start + 1;
+            int textSize = t.end - t.start;
             printf(" %.*s", textSize, t.text);
         }
 
@@ -722,6 +722,19 @@ void json_delete_lexer(struct json_lexer_context_t *ctx) {
     free(ctx);
 }
 
+/*
+ * The comment block below explains the role of the offset:
+ *
+ * For example:
+ *   Offset is 0 means the lookahead char is str[0] and no character has been matched yet.
+ *   Offset is n means the lookahead char is str[n] and the last matched char is str[n-1]
+ *                     |
+ *         'a' 'b' 'c' | 'd' 'e' ...
+ *  -------------------|---------------------> Input Stream
+ *                   | |  ^
+ *        Last Matched |  Lookahead
+ *                     Offset
+*/
 static int next_char(struct json_lexer_context_t *ctx) {
     if (!ctx->from_string) {
         fprintf(stderr, "No streaming input\n");
@@ -730,27 +743,33 @@ static int next_char(struct json_lexer_context_t *ctx) {
     }
 
     if (ctx->offset >= ctx->from_string_len) {
-        ctx->currentChar = EOF;
         return EOF;
     }
 
-    ctx->currentChar = ctx->from_string[ctx->offset];
     ctx->offset++;
     ctx->column++;
 
-    return ctx->currentChar;
+    return ctx->from_string[ctx->offset];
 }
 
-static bool lookahead(struct json_lexer_context_t *ctx, int c) { return ctx->currentChar == c; }
+static int lookahead_char(struct json_lexer_context_t *ctx) {
+    if (ctx->offset >= ctx->from_string_len) {
+        return EOF;
+    }
+
+    return ctx->from_string[ctx->offset];
+}
+
+static bool lookahead(struct json_lexer_context_t *ctx, int c) { return lookahead_char(ctx) == c; }
 
 static void match(struct json_lexer_context_t *ctx, int c) {
-    char curC = ctx->currentChar;
+    int cur = lookahead_char(ctx);
 
     // always get the next one before checking
     next_char(ctx);
 
-    if (curC != c) {
-        fprintf(stderr, "Syntax Error %lu:%lu: Unexpected Char: %c\n", ctx->row, ctx->column, curC);
+    if (cur != c) {
+        fprintf(stderr, "Syntax Error %lu:%lu: Unexpected Char: %c\n", ctx->row, ctx->column, cur);
         print_trace();
         assert(0);
     }
@@ -771,15 +790,16 @@ static bool match_if_exist(struct json_lexer_context_t *ctx, int c) {
 }
 
 static bool match_between_if_exist(struct json_lexer_context_t *ctx, int start, int end) {
-    if (ctx->currentChar >= start && ctx->currentChar <= end) {
-        match(ctx, ctx->currentChar);
+    int cur = lookahead_char(ctx);
+    if (cur >= start && cur <= end) {
+        match(ctx, cur);
         return true;
     }
     return false;
 }
 
 static const char *substring(struct json_lexer_context_t *ctx, size_t start, size_t end) {
-    return ctx->from_string + start - 1;
+    return ctx->from_string + start;
 }
 
 static void insert_token(struct json_lexer_context_t *ctx, struct json_lexer_token_t *t) {
@@ -795,13 +815,18 @@ static void insert_token(struct json_lexer_context_t *ctx, struct json_lexer_tok
         assert(0);
     }
 
-    // set default token list
+    // If the token list is not yet allocated, initialize it with a capacity of 1.
     if (!tokens->list) {
         tokens->capacity = 1;
         tokens->list = (struct json_lexer_token_t *)malloc(sizeof(struct json_lexer_token_t) * tokens->capacity);
     }
 
-    // double token list if full, time complexity O(3n)
+    // If the token list is full, double its capacity.
+    // This operation involves:
+    // 1. Calculating the size of the old list.
+    // 2. Allocating a new list with double the capacity.
+    // 3. Copying the old tokens into the new list.
+    // 4. Freeing the old list.
     if (tokens->length >= tokens->capacity) {
         oldSize = sizeof(struct json_lexer_token_t) * tokens->capacity;
         oldList = tokens->list;
@@ -824,7 +849,7 @@ static void insert_token(struct json_lexer_context_t *ctx, struct json_lexer_tok
 
 static void get_tok_LPAIR(struct json_lexer_context_t *ctx) {
     size_t start = ctx->offset;
-    size_t end = ctx->offset;
+    size_t end = ctx->offset + 1;
     size_t startCol = ctx->column;
 
     match(ctx, '{');
@@ -844,7 +869,7 @@ static void get_tok_LPAIR(struct json_lexer_context_t *ctx) {
 
 static void get_tok_RPAIR(struct json_lexer_context_t *ctx) {
     size_t start = ctx->offset;
-    size_t end = ctx->offset;
+    size_t end = ctx->offset + 1;
     size_t startCol = ctx->column;
 
     match(ctx, '}');
@@ -864,7 +889,7 @@ static void get_tok_RPAIR(struct json_lexer_context_t *ctx) {
 
 static void get_tok_LARRAY(struct json_lexer_context_t *ctx) {
     size_t start = ctx->offset;
-    size_t end = ctx->offset;
+    size_t end = ctx->offset + 1;
     size_t startCol = ctx->column;
 
     match(ctx, '[');
@@ -884,7 +909,7 @@ static void get_tok_LARRAY(struct json_lexer_context_t *ctx) {
 
 static void get_tok_RARRAY(struct json_lexer_context_t *ctx) {
     size_t start = ctx->offset;
-    size_t end = ctx->offset;
+    size_t end = ctx->offset + 1;
     size_t startCol = ctx->column;
 
     match(ctx, ']');
@@ -904,7 +929,7 @@ static void get_tok_RARRAY(struct json_lexer_context_t *ctx) {
 
 static void get_tok_COMMA(struct json_lexer_context_t *ctx) {
     size_t start = ctx->offset;
-    size_t end = ctx->offset;
+    size_t end = ctx->offset + 1;
     size_t startCol = ctx->column;
 
     match(ctx, ',');
@@ -924,7 +949,7 @@ static void get_tok_COMMA(struct json_lexer_context_t *ctx) {
 
 static void get_tok_COLON(struct json_lexer_context_t *ctx) {
     size_t start = ctx->offset;
-    size_t end = ctx->offset;
+    size_t end = ctx->offset + 1;
     size_t startCol = ctx->column;
 
     match(ctx, ':');
@@ -957,7 +982,7 @@ static void get_tok_STRING(struct json_lexer_context_t *ctx) {
         next_char(ctx);
     }
 
-    end = ctx->offset - 1;
+    end = ctx->offset;
 
     match(ctx, '"');
 
@@ -979,11 +1004,15 @@ static void get_tok_NUMBER(struct json_lexer_context_t *ctx) {
     size_t end = 0;
     size_t startCol = ctx->column;
 
-    // we should lookahead more, but here we get number simply
-    // '-'? ('0' | [1-9][0-9]*)+ ('.' [0-9]+)? ([eE] [+-]? [0-9]+)?
+    // NOTE: This implementation uses a simple scan.
+    // The valid JSON number format is:
+    //   '-'? ('0' | [1-9][0-9]*) ('.' [0-9]+)? ([eE] [+-]? [0-9]+)?
+    // Here, we check if the next character matches any of the valid components:
+    // digits, minus sign, plus sign, decimal point, or exponent indicator.
+    // We loop as long as any valid numeric character is found.
     while (match_between_if_exist(ctx, '0', '9') || match_if_exist(ctx, '-') || match_if_exist(ctx, '+') ||
            match_if_exist(ctx, '.') || match_if_exist(ctx, 'e') || match_if_exist(ctx, 'E'))
-        ;
+        continue;
 
     end = ctx->offset;
 
@@ -1068,8 +1097,6 @@ static void get_tok_NULL(struct json_lexer_context_t *ctx) {
 
 void json_execute_lexer(struct json_lexer_context_t *ctx) {
 
-    next_char(ctx);
-
     while (!lookahead(ctx, EOF)) {
 
         if (lookahead(ctx, '{')) {
@@ -1087,7 +1114,7 @@ void json_execute_lexer(struct json_lexer_context_t *ctx) {
         } else if (lookahead(ctx, '"')) {
             get_tok_STRING(ctx);
         } else if (lookahead(ctx, '-') || lookahead(ctx, '+') || lookahead(ctx, '.') ||
-                   (ctx->currentChar >= '0' && ctx->currentChar <= '9')) {
+                   (lookahead_char(ctx) >= '0' && lookahead_char(ctx) <= '9')) {
             get_tok_NUMBER(ctx);
         } else if (lookahead(ctx, 't')) {
             get_tok_TRUE(ctx);
@@ -1115,7 +1142,8 @@ void json_execute_lexer(struct json_lexer_context_t *ctx) {
 // --------------------------------------------------
 
 struct json_parser_context_t *json_create_parser(struct json_lexer_context_t *lexer) {
-    struct json_parser_context_t *parser_p = (struct json_parser_context_t *)malloc(sizeof(struct json_parser_context_t));
+    struct json_parser_context_t *parser_p =
+        (struct json_parser_context_t *)malloc(sizeof(struct json_parser_context_t));
 
     struct json_parser_context_t parser = {
         .token_index = 0,
@@ -1129,14 +1157,14 @@ struct json_parser_context_t *json_create_parser(struct json_lexer_context_t *le
 
 void json_delete_parser(struct json_parser_context_t *ctx) { free(ctx); }
 
-struct json_lexer_token_t *json_current_token(struct json_parser_context_t *ctx) {
+static struct json_lexer_token_t *current_token(struct json_parser_context_t *ctx) {
     size_t index = ctx->token_index - 1;
     if (index >= ctx->lexer->tokens.length)
         return NULL;
     return &ctx->lexer->tokens.list[index];
 }
 
-void json_match_token(struct json_parser_context_t *ctx, enum json_lexer_token_type_t t) {
+static void match_token(struct json_parser_context_t *ctx, enum json_lexer_token_type_t t) {
     size_t index = ctx->token_index;
 
     // always get next token before checking
@@ -1157,7 +1185,7 @@ void json_match_token(struct json_parser_context_t *ctx, enum json_lexer_token_t
     }
 }
 
-bool json_lookahead_n_token(struct json_parser_context_t *ctx, int n, enum json_lexer_token_type_t t) {
+static bool lookahead_n_token(struct json_parser_context_t *ctx, int n, enum json_lexer_token_type_t t) {
     size_t index = ctx->token_index + n;
 
     if (index >= ctx->lexer->tokens.length) {
@@ -1167,43 +1195,44 @@ bool json_lookahead_n_token(struct json_parser_context_t *ctx, int n, enum json_
     return ctx->lexer->tokens.list[index].type == t;
 }
 
-bool json_lookahead_token(struct json_parser_context_t *ctx, enum json_lexer_token_type_t t) {
-    return json_lookahead_n_token(ctx, 0, t);
+static bool lookahead_token(struct json_parser_context_t *ctx, enum json_lexer_token_type_t t) {
+    return lookahead_n_token(ctx, 0, t);
 }
 
-union json_t json_object_rule(struct json_parser_context_t *ctx);
-union json_t json_array_rule(struct json_parser_context_t *ctx);
-union json_t json_value_rule(struct json_parser_context_t *ctx);
+// Forward declarations for the recursive descent parser rules.
+static union json_t object_rule(struct json_parser_context_t *ctx);
+static union json_t array_rule(struct json_parser_context_t *ctx);
+static union json_t value_rule(struct json_parser_context_t *ctx);
 
-union json_t json_value_rule(struct json_parser_context_t *ctx) {
+static union json_t value_rule(struct json_parser_context_t *ctx) {
     struct json_lexer_token_t *token_p;
 
     // value : obj | arr | STRING | NUMBER | 'true' | 'false' | 'null' ;
     union json_t j;
 
-    if (json_lookahead_token(ctx, JLT_LPAIR)) {
-        j = json_object_rule(ctx);
-    } else if (json_lookahead_token(ctx, JLT_LARRAY)) {
-        j = json_array_rule(ctx);
-    } else if (json_lookahead_token(ctx, JLT_STRING)) {
-        json_match_token(ctx, JLT_STRING);
-        token_p = json_current_token(ctx);
-        j = JSON_STRING(json_strndup(token_p->text, token_p->end - token_p->start + 1));
-    } else if (json_lookahead_token(ctx, JLT_NUMBER)) {
-        json_match_token(ctx, JLT_NUMBER);
-        token_p = json_current_token(ctx);
-        j = JSON_NUMBER(json_strndup(token_p->text, token_p->end - token_p->start + 1));
-    } else if (json_lookahead_token(ctx, JLT_TRUE)) {
-        json_match_token(ctx, JLT_TRUE);
+    if (lookahead_token(ctx, JLT_LPAIR)) {
+        j = object_rule(ctx);
+    } else if (lookahead_token(ctx, JLT_LARRAY)) {
+        j = array_rule(ctx);
+    } else if (lookahead_token(ctx, JLT_STRING)) {
+        match_token(ctx, JLT_STRING);
+        token_p = current_token(ctx);
+        j = JSON_STRING(json_strndup(token_p->text, token_p->end - token_p->start));
+    } else if (lookahead_token(ctx, JLT_NUMBER)) {
+        match_token(ctx, JLT_NUMBER);
+        token_p = current_token(ctx);
+        j = JSON_NUMBER(json_strndup(token_p->text, token_p->end - token_p->start));
+    } else if (lookahead_token(ctx, JLT_TRUE)) {
+        match_token(ctx, JLT_TRUE);
         j = JSON_TRUE;
-    } else if (json_lookahead_token(ctx, JLT_FALSE)) {
-        json_match_token(ctx, JLT_FALSE);
+    } else if (lookahead_token(ctx, JLT_FALSE)) {
+        match_token(ctx, JLT_FALSE);
         j = JSON_FALSE;
-    } else if (json_lookahead_token(ctx, JLT_NULL)) {
-        json_match_token(ctx, JLT_NULL);
+    } else if (lookahead_token(ctx, JLT_NULL)) {
+        match_token(ctx, JLT_NULL);
         j = JSON_NULL;
     } else {
-        token_p = json_current_token(ctx);
+        token_p = current_token(ctx);
         fprintf(stderr, "Syntax Error: Unexpected Token at Token Index %lu: <%d|%s>\n", ctx->token_index, token_p->type,
                 json_lexer_type2str(token_p->type));
         print_trace();
@@ -1214,64 +1243,64 @@ union json_t json_value_rule(struct json_parser_context_t *ctx) {
     return j;
 }
 
-union json_t json_object_rule(struct json_parser_context_t *ctx) {
+static union json_t object_rule(struct json_parser_context_t *ctx) {
     union json_t jobj = JSON_OBJECT;
-    struct json_lexer_token_t *token_p;
+    struct json_lexer_token_t *key_tok;
     size_t key_len;
     const char *key;
     union json_t value;
 
     // pair : STRING ':' value ;
     // object : LPAIR pair (',' pair)* RPAIR | LPAIR RPAIR;
-    json_match_token(ctx, JLT_LPAIR);
+    match_token(ctx, JLT_LPAIR);
 
-    while (!json_lookahead_token(ctx, JLT_RPAIR)) {
+    while (!lookahead_token(ctx, JLT_RPAIR)) {
         /* Key */
-        json_match_token(ctx, JLT_STRING);
-        token_p = json_current_token(ctx);
-        key_len = token_p->end - token_p->start + 1;
-        key = token_p->text;
+        match_token(ctx, JLT_STRING);
+        key_tok = current_token(ctx);
+        key_len = key_tok->end - key_tok->start;
+        key = key_tok->text;
 
-        json_match_token(ctx, JLT_COLON);
+        match_token(ctx, JLT_COLON);
 
         /* Value */
-        value = json_value_rule(ctx);
+        value = value_rule(ctx);
         json_set_value_np(&jobj, key, key_len, &value);
 
-        if (json_lookahead_token(ctx, JLT_COMMA)) {
-            json_match_token(ctx, JLT_COMMA);
+        if (lookahead_token(ctx, JLT_COMMA)) {
+            match_token(ctx, JLT_COMMA);
         }
     }
 
-    json_match_token(ctx, JLT_RPAIR);
+    match_token(ctx, JLT_RPAIR);
 
     return jobj;
 }
 
-union json_t json_array_rule(struct json_parser_context_t *ctx) {
+static union json_t array_rule(struct json_parser_context_t *ctx) {
     union json_t jarr = JSON_ARRAY;
     union json_t value;
 
     // array : LARRAY value (',' value)* RARRAY | LARRAY RARRAY ;
-    json_match_token(ctx, JLT_LARRAY);
+    match_token(ctx, JLT_LARRAY);
 
-    while (!json_lookahead_token(ctx, JLT_RARRAY)) {
-        value = json_value_rule(ctx);
+    while (!lookahead_token(ctx, JLT_RARRAY)) {
+        value = value_rule(ctx);
         json_append_value_p(&jarr, &value);
 
-        if (json_lookahead_token(ctx, JLT_COMMA)) {
-            json_match_token(ctx, JLT_COMMA);
+        if (lookahead_token(ctx, JLT_COMMA)) {
+            match_token(ctx, JLT_COMMA);
         }
     }
 
-    json_match_token(ctx, JLT_RARRAY);
+    match_token(ctx, JLT_RARRAY);
 
     return jarr;
 }
 
-void json_execute_parser(struct json_parser_context_t *ctx) {
+void json_parse(struct json_parser_context_t *ctx) {
     // json : value EOF;
-    ctx->root = json_value_rule(ctx);
+    ctx->root = value_rule(ctx);
 }
 
 union json_t json_string(const char *input_text) {
@@ -1279,7 +1308,8 @@ union json_t json_string(const char *input_text) {
     struct json_parser_context_t *parser = json_create_parser(lexer);
 
     json_execute_lexer(lexer);
-    json_execute_parser(parser);
+    json_print_lexer(lexer);
+    json_parse(parser);
 
     union json_t j = parser->root;
 
@@ -1289,7 +1319,12 @@ union json_t json_string(const char *input_text) {
     return j;
 }
 
-union json_t json_file(FILE *f) {
+union json_t json_load(FILE *f) {
+    if (!f) {
+        fprintf(stderr, "Error: Could not open file\n");
+        return JSON_MISSING;
+    }
+
     fseek(f, 0, SEEK_END);
     long file_size = ftell(f);
     fseek(f, 0, SEEK_SET);
@@ -1309,14 +1344,14 @@ union json_t json_file(FILE *f) {
     return j;
 }
 
-union json_t json_load(const char *file_path) {
+union json_t json_file(const char *file_path) {
     FILE *f = fopen(file_path, "r");
     if (!f) {
         fprintf(stderr, "Error: Could not open file %s\n", file_path);
         return JSON_MISSING;
     }
 
-    union json_t j = json_file(f);
+    union json_t j = json_load(f);
     fclose(f);
     return j;
 }
