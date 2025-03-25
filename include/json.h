@@ -209,8 +209,8 @@ bool json_set_value_np(union json_t *j, const char *key, size_t key_len, union j
 
 #define json_set(j, key, value)                                                                                        \
     _Generic((key),                  \
-        const char *: json_set_func(value) \
-        char *: json_set_func(value) \
+        const char *: json_set_func(value), \
+        char *: json_set_func(value), \
         default: json_set_func(value) \
     )((j), (key), (value))
 #endif
@@ -279,10 +279,10 @@ union json_t json_dup(union json_t j);
 
 #ifndef __cplusplus
 #define json_get(j, key)                                                                                               \
-    *_Generic((key), const char *: __json_get_from_obj, char *: __json_get_from_obj, default: __json_get_from_arr)(     \
+    _Generic((key), const char *: __json_get_from_obj, char *: __json_get_from_obj, default: __json_get_from_arr)(     \
         (j), (key))
 #define json_getp(j, key)                                                                                               \
-    _Generic((key), const char *: __json_get_from_obj, char *: __json_get_from_obj, default: __json_get_from_arr)(     \
+    _Generic((key), const char *: __json_getp_from_obj, char *: __json_getp_from_obj, default: __json_getp_from_arr)(     \
         (j), (key))
 #define json_remove(j, key)                                                                                            \
     _Generic((key),                                                                                                    \
