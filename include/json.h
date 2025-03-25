@@ -91,22 +91,22 @@ struct json_pair_t {
 #define JSON_FLOAT(x) ((union json_t){.tok = {.type = JT_FLOAT, .f64 = (double)(x)}})
 #endif
 
-#define json_is_object(j) ((j).type == JT_OBJECT)
+#define json_is_empty(j) ((j).type == JT_MISSING)
+#define json_is_missing(j) ((j).type == JT_MISSING)
 #define json_is_array(j) ((j).type == JT_ARRAY)
+#define json_is_object(j) ((j).type == JT_OBJECT)
+#define json_is_null(j) ((j).type == JT_NULL)
+#define json_is_bool(j) ((j).type == JT_BOOL)
 #define json_is_int(j) ((j).type == JT_INT)
 #define json_is_uint(j) ((j).type == JT_UINT)
-#define json_is_string(j) ((j).type == JT_STRING)
-#define json_is_raw_number(j) ((j).type == JT_NUMBER)
-#define json_is_bool(j) ((j).type == JT_BOOL)
-#define json_is_null(j) ((j).type == JT_NULL)
 #define json_is_float(j) ((j).type == JT_FLOAT)
+#define json_is_raw_number(j) ((j).type == JT_NUMBER)
+#define json_is_string(j) ((j).type == JT_STRING)
+#define json_is_number(j) (json_is_int(j) || json_is_uint(j) || json_is_float(j) || json_is_raw_number(j))
 #define json_is_terminal_token(j)                                                                                      \
-    ((j).type == JT_NULL || (j).type == JT_BOOL || (j).type == JT_INT || (j).type == JT_UINT ||                        \
-     (j).type == JT_FLOAT || (j).type == JT_STRING || (j).type == JT_NUMBER)
-#define json_is_empty(j) (!(json_is_terminal_token(j) || json_is_array(j) || json_is_object(j)))
-#define json_is_missing(j) ((j).type == JT_MISSING)
+    (json_is_null(j) || json_is_bool(j) || json_is_int(j) || json_is_uint(j) ||                        \
+     json_is_float(j) || json_is_string(j) || json_is_raw_number(j))
 
-const char *json_token2str(enum json_token_type_t type);
 const char *json_type2str(enum json_token_type_t type);
 
 // --------------------------------------------------
@@ -146,7 +146,17 @@ struct json_pair_t *jsonext_obj_iter_next(union json_t *j, struct json_pair_t *p
 // --------------------------------------------------
 union json_t json_create_obj(size_t capacity);
 
-union json_t *__json_get_from_obj(union json_t j, const char *key);
+struct json_pair_t *json_obj_iter_first(union json_t j);
+struct json_pair_t *json_obj_iter_next(union json_t j, struct json_pair_t *it);
+
+#define json_foreach_obj(j, it) \
+    for (struct json_pair_t *(it) = json_obj_iter_first(j); (it) != NULL; (it) = json_obj_iter_next(j, (it)))
+
+void __json_merge(union json_t *j, union json_t from);
+void __json_merge_p(union json_t *j, union json_t *from);
+
+union json_t *__json_getp_from_obj(union json_t j, const char *key);
+union json_t __json_get_from_obj(union json_t j, const char *key);
 union json_t __json_remove_from_obj(union json_t *j, const char *key);
 void __json_delete_from_obj(union json_t *j, const char *key);
 
@@ -171,25 +181,38 @@ bool json_set_value_np(union json_t *j, const char *key, size_t key_len, union j
  * Booling type is compatibale i32, it will not goto bool option in C
  */
 #ifndef __cplusplus
+#define json_merge(j, from) _Generic((from), \
+            union json_t: __json_merge, \
+            union json_t *: __json_merge_p, \
+            default: __json_merge)((j), (from))
+
+#define json_set_func(value) _Generic((value),                                                                                                  \
+            const char *: json_set_str,                                                                                    \
+            char *: json_set_str,                                                                                          \
+            bool: json_set_bool,                                                                                           \
+            void *: json_set_null,                                                                                         \
+            int8_t: json_set_i8,                                                                                           \
+            int16_t: json_set_i16,                                                                                         \
+            int32_t: json_set_i32,                                                                                         \
+            int64_t: json_set_i64,                                                                                         \
+            uint8_t: json_set_u8,                                                                                          \
+            uint16_t: json_set_u16,                                                                                        \
+            uint32_t: json_set_u32,                                                                                        \
+            uint64_t: json_set_u64,                                                                                        \
+            float: json_set_f32,                                                                                           \
+            double: json_set_f64,                                                                                          \
+            json_t: json_set_value,                                                                                        \
+            json_t *: json_set_value_p,                                                                                    \
+            default: json_set_value)
+
+// TODO: set array by index
+
 #define json_set(j, key, value)                                                                                        \
-    _Generic((value),                                                                                                  \
-        const char *: json_set_str,                                                                                    \
-        char *: json_set_str,                                                                                          \
-        bool: json_set_bool,                                                                                           \
-        void *: json_set_null,                                                                                         \
-        int8_t: json_set_i8,                                                                                           \
-        int16_t: json_set_i16,                                                                                         \
-        int32_t: json_set_i32,                                                                                         \
-        int64_t: json_set_i64,                                                                                         \
-        uint8_t: json_set_u8,                                                                                          \
-        uint16_t: json_set_u16,                                                                                        \
-        uint32_t: json_set_u32,                                                                                        \
-        uint64_t: json_set_u64,                                                                                        \
-        float: json_set_f32,                                                                                           \
-        double: json_set_f64,                                                                                          \
-        json_t: json_set_value,                                                                                        \
-        json_t *: json_set_value_p,                                                                                    \
-        default: json_set_value)((j), (key), (value))
+    _Generic((key),                  \
+        const char *: json_set_func(value) \
+        char *: json_set_func(value) \
+        default: json_set_func(value) \
+    )((j), (key), (value))
 #endif
 
 // --------------------------------------------------
@@ -197,7 +220,11 @@ bool json_set_value_np(union json_t *j, const char *key, size_t key_len, union j
 // --------------------------------------------------
 union json_t json_create_arr(size_t capacity);
 
-union json_t *__json_get_from_arr(union json_t j, long int i);
+void __json_concat(union json_t *j, union json_t from);
+void __json_concat_p(union json_t *j, union json_t *from);
+
+union json_t *__json_getp_from_arr(union json_t j, long int i);
+union json_t __json_get_from_arr(union json_t j, long int i);
 union json_t __json_remove_from_arr(union json_t *j, long int i);
 void __json_delete_from_arr(union json_t *j, long int i);
 
@@ -218,6 +245,11 @@ bool json_append_value(union json_t *j, union json_t value);
 bool json_append_value_p(union json_t *j, union json_t *value);
 
 #ifndef __cplusplus
+#define json_concat(j, from) _Generic((from), \
+            union json_t: __json_concat, \
+            union json_t *: __json_concat_p, \
+            default: __json_concat)((j), (from))
+
 #define json_append(j, value)                                                                                          \
     _Generic((value),                                                                                                  \
         const char *: json_append_str,                                                                                 \
@@ -243,10 +275,13 @@ bool json_append_value_p(union json_t *j, union json_t *value);
 //                JSON COMMON FUNCTION
 // --------------------------------------------------
 
-union json_t json_dup(union json_t t);
+union json_t json_dup(union json_t j);
 
 #ifndef __cplusplus
 #define json_get(j, key)                                                                                               \
+    *_Generic((key), const char *: __json_get_from_obj, char *: __json_get_from_obj, default: __json_get_from_arr)(     \
+        (j), (key))
+#define json_getp(j, key)                                                                                               \
     _Generic((key), const char *: __json_get_from_obj, char *: __json_get_from_obj, default: __json_get_from_arr)(     \
         (j), (key))
 #define json_remove(j, key)                                                                                            \
@@ -282,12 +317,7 @@ void __json_dump(union json_t j, FILE *f, struct json_config config);
 void __json_pprint(union json_t j, struct json_config config);
 void json_print(union json_t j);
 
-// TODO foreach
-// #define json_foreach_arr(i, it, jp) \
-//     union json_t *(it) = NULL; \
-//     for (size_t (i) = 0; ({ bool res = i < json_length(jp); it = res ? json_get(jp, i) : it; res; });
-//     i++)
-// json_foreach_arr(i, it, &j)
+// TODO json assign or json update, update non initial value
 
 // --------------------------------------------------
 //                    JSON Lexer
@@ -326,7 +356,6 @@ struct json_lexer_container_t {
 
 struct json_lexer_context_t {
     struct json_lexer_container_t tokens;
-    // int curchar;
     size_t offset;
     size_t column;
     size_t row;
@@ -334,10 +363,13 @@ struct json_lexer_context_t {
     size_t from_string_len;
 };
 
+const char *json_lexer_type2str(enum json_lexer_token_type_t type);
+
 struct json_lexer_context_t *json_create_lexer(const char *from_string);
 void json_delete_lexer(struct json_lexer_context_t *ctx);
 void json_execute_lexer(struct json_lexer_context_t *ctx);
 void json_print_lexer(struct json_lexer_context_t *ctx);
+
 // --------------------------------------------------
 //                END JSON Lexer
 // --------------------------------------------------

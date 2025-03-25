@@ -47,7 +47,7 @@ if not get_option('disable_tests')
   # Build the test executable.
   # It links with your library (so tests can call library functions)
   # and uses the gtest and gmock libraries.
-  test_exe = executable('my_project_tests', test_sources,
+  test_exe = executable('json_gtest', test_sources,
     include_directories: inc,
     dependencies: [gtest_dep, gmock_dep],
     link_with: mylib,
@@ -56,5 +56,5 @@ if not get_option('disable_tests')
   )
 
   # Register the test with Meson.
-  test('my_project_tests', test_exe)
+  test('json_gtest', test_exe)
 endif

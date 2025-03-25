@@ -126,8 +126,8 @@ TEST(JsonCommonTest, JsonGetTerminalToken) {
     union json_t j = JSON_INT(123);
 
     /* Act */
-    union json_t *res_1 = __json_get_from_obj(j, "A");
-    union json_t *res_2 = __json_get_from_arr(j, 1);
+    union json_t *res_1 = __json_getp_from_obj(j, "A");
+    union json_t *res_2 = __json_getp_from_arr(j, 1);
 
     /* Assert */
     EXPECT_EQ(JT_INT, j.type);

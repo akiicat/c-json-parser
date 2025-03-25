@@ -142,11 +142,18 @@ static inline bool json_append(union json_t *j, union json_t *value) {
   return json_append_value_p(j, value);
 }
 
-static inline union json_t *json_get(union json_t j, const char *key) {
+static inline union json_t json_get(union json_t j, const char *key) {
   return __json_get_from_obj(j, key);
 }
-static inline union json_t *json_get(union json_t j, int i) {
+static inline union json_t json_get(union json_t j, int i) {
   return __json_get_from_arr(j, i);
+}
+
+static inline union json_t *json_getp(union json_t j, const char *key) {
+  return __json_getp_from_obj(j, key);
+}
+static inline union json_t *json_getp(union json_t j, int i) {
+  return __json_getp_from_arr(j, i);
 }
 
 static inline union json_t json_remove(union json_t *j, const char *key) {
@@ -161,6 +168,21 @@ static inline void json_delete(union json_t *j, const char *key) {
 }
 static inline void json_delete(union json_t *j, int i) {
   return __json_delete_from_arr(j, i);
+}
+
+static inline void json_merge(union json_t *j, union json_t from) {
+  return __json_merge(j, from);
+}
+static inline void json_merge(union json_t *j, union json_t *from) {
+  return __json_merge_p(j, from);
+}
+
+static inline void json_concat(union json_t *j, union json_t from) {
+  return __json_concat(j, from);
+}
+
+static inline void json_concat_p(union json_t *j, union json_t *from) {
+  return __json_concat_p(j, from);
 }
 
 #endif /* __JSON_HH__ */

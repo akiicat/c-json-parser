@@ -31,11 +31,11 @@ TEST(JsonUtilTest, JsonStrndup) {
 }
 
 TEST(JsonUtilTest, JsonType2Str) {
-    for (int i = JT_MISSING; i <= JT_TOKEN_SIZE; i++) {
-        EXPECT_STREQ(type_str[i], json_type2str((enum json_token_type_t)(i)));
+    for (int i = JLT_MISSING; i <= JLT_LEXER_TOKEN_SIZE; i++) {
+        EXPECT_STREQ(lexer_type_str[i], json_lexer_type2str((enum json_lexer_token_type_t)(i))) << "Index: " << i;
     }
-    EXPECT_EQ(NULL, json_type2str((enum json_token_type_t)(JT_TOKEN_SIZE+1)));
-    EXPECT_EQ(NULL, json_type2str((enum json_token_type_t)(JT_MISSING-1)));
+    EXPECT_EQ(NULL, json_lexer_type2str((enum json_lexer_token_type_t)(JLT_LEXER_TOKEN_SIZE+1)));
+    EXPECT_EQ(NULL, json_lexer_type2str((enum json_lexer_token_type_t)(JLT_MISSING-1)));
 }
 
 TEST(JsonUtilTest, JsonDumps) {
@@ -46,7 +46,7 @@ TEST(JsonUtilTest, JsonDumps) {
     /* Act */
     json_append(&arr, 123);
     json_set(&obj, "Array", arr);
-    json_append(json_get(obj, "Array"), 456);
+    json_append(json_getp(obj, "Array"), 456);
 
     char *obj_s = json_dumps(obj, .indent = -1);
     char *arr_s = json_dumps(arr, .indent = -1);

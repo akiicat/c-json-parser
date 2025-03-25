@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "env.hh"
+#include "json.h"
 #include "json.hh"
 
 TEST(JsonObjectTest, CreateObject) {
@@ -26,11 +27,11 @@ TEST(JsonObjectTest, GetFromObject) {
     json_set(&j, "B", "2");
 
     /* Act */
-    union json_t *res = json_get(j, "B");
+    union json_t res = json_get(j, "B");
 
     /* Assert */
-    EXPECT_EQ(JT_STRING, res->type);
-    EXPECT_STREQ("2", res->tok.text);
+    EXPECT_EQ(JT_STRING, res.type);
+    EXPECT_STREQ("2", res.tok.text);
 
     /* Clean */
     json_clean(&j);
@@ -69,8 +70,8 @@ TEST(JsonObjectTest, DeleteFromObject) {
     /* Assert */
     EXPECT_EQ(JT_OBJECT, j.type);
     EXPECT_EQ(1, json_length(j));
-    EXPECT_EQ(JT_INT, json_get(j, "A")->type);
-    EXPECT_EQ(1, json_get(j, "A")->m_i64);
+    EXPECT_EQ(JT_INT, json_get(j, "A").type);
+    EXPECT_EQ(1, json_get(j, "A").m_i64);
 
     /* Clean */
     json_clean(&j);
@@ -119,10 +120,10 @@ TEST(JsonObjectTest, SetString) {
     /* Assert */
     EXPECT_EQ(JT_OBJECT, j.type);
     EXPECT_EQ(2, json_length(j));
-    EXPECT_EQ(JT_STRING, json_get(j, "A")->type);
-    EXPECT_EQ(JT_STRING, json_get(j, "B")->type);
-    EXPECT_STREQ("1", json_get(j, "A")->m_text);
-    EXPECT_STREQ("2", json_get(j, "B")->m_text);
+    EXPECT_EQ(JT_STRING, json_get(j, "A").type);
+    EXPECT_EQ(JT_STRING, json_get(j, "B").type);
+    EXPECT_STREQ("1", json_get(j, "A").m_text);
+    EXPECT_STREQ("2", json_get(j, "B").m_text);
 
     /* Clean */
     json_clean(&j);
@@ -139,10 +140,10 @@ TEST(JsonObjectTest, SetBool) {
     /* Assert */
     EXPECT_EQ(JT_OBJECT, j.type);
     EXPECT_EQ(2, json_length(j));
-    EXPECT_EQ(JT_BOOL, json_get(j, "A")->type);
-    EXPECT_EQ(JT_BOOL, json_get(j, "B")->type);
-    EXPECT_TRUE(json_get(j, "A")->m_bool);
-    EXPECT_FALSE(json_get(j, "B")->m_bool);
+    EXPECT_EQ(JT_BOOL, json_get(j, "A").type);
+    EXPECT_EQ(JT_BOOL, json_get(j, "B").type);
+    EXPECT_TRUE(json_get(j, "A").m_bool);
+    EXPECT_FALSE(json_get(j, "B").m_bool);
 
     /* Clean */
     json_clean(&j);
@@ -159,8 +160,8 @@ TEST(JsonObjectTest, SetNull) {
     /* Assert */
     EXPECT_EQ(JT_OBJECT, j.type);
     EXPECT_EQ(2, json_length(j));
-    EXPECT_EQ(JT_NULL, json_get(j, "A")->type);
-    EXPECT_EQ(JT_NULL, json_get(j, "B")->type);
+    EXPECT_EQ(JT_NULL, json_get(j, "A").type);
+    EXPECT_EQ(JT_NULL, json_get(j, "B").type);
 
     /* Clean */
     json_clean(&j);
@@ -177,10 +178,10 @@ TEST(JsonObjectTest, SetI8) {
     /* Assert */
     EXPECT_EQ(JT_OBJECT, j.type);
     EXPECT_EQ(2, json_length(j));
-    EXPECT_EQ(JT_INT, json_get(j, "A")->type);
-    EXPECT_EQ(JT_INT, json_get(j, "B")->type);
-    EXPECT_EQ(1, json_get(j, "A")->m_i64);
-    EXPECT_EQ(-2, json_get(j, "B")->m_i64);
+    EXPECT_EQ(JT_INT, json_get(j, "A").type);
+    EXPECT_EQ(JT_INT, json_get(j, "B").type);
+    EXPECT_EQ(1, json_get(j, "A").m_i64);
+    EXPECT_EQ(-2, json_get(j, "B").m_i64);
 
     /* Clean */
     json_clean(&j);
@@ -197,10 +198,10 @@ TEST(JsonObjectTest, SetI16) {
     /* Assert */
     EXPECT_EQ(JT_OBJECT, j.type);
     EXPECT_EQ(2, json_length(j));
-    EXPECT_EQ(JT_INT, json_get(j, "A")->type);
-    EXPECT_EQ(JT_INT, json_get(j, "B")->type);
-    EXPECT_EQ(1, json_get(j, "A")->m_i64);
-    EXPECT_EQ(-2, json_get(j, "B")->m_i64);
+    EXPECT_EQ(JT_INT, json_get(j, "A").type);
+    EXPECT_EQ(JT_INT, json_get(j, "B").type);
+    EXPECT_EQ(1, json_get(j, "A").m_i64);
+    EXPECT_EQ(-2, json_get(j, "B").m_i64);
 
     /* Clean */
     json_clean(&j);
@@ -217,10 +218,10 @@ TEST(JsonObjectTest, SetI32) {
     /* Assert */
     EXPECT_EQ(JT_OBJECT, j.type);
     EXPECT_EQ(2, json_length(j));
-    EXPECT_EQ(JT_INT, json_get(j, "A")->type);
-    EXPECT_EQ(JT_INT, json_get(j, "B")->type);
-    EXPECT_EQ(1, json_get(j, "A")->m_i64);
-    EXPECT_EQ(-2, json_get(j, "B")->m_i64);
+    EXPECT_EQ(JT_INT, json_get(j, "A").type);
+    EXPECT_EQ(JT_INT, json_get(j, "B").type);
+    EXPECT_EQ(1, json_get(j, "A").m_i64);
+    EXPECT_EQ(-2, json_get(j, "B").m_i64);
 
     /* Clean */
     json_clean(&j);
@@ -237,10 +238,10 @@ TEST(JsonObjectTest, SetI64) {
     /* Assert */
     EXPECT_EQ(JT_OBJECT, j.type);
     EXPECT_EQ(2, json_length(j));
-    EXPECT_EQ(JT_INT, json_get(j, "A")->type);
-    EXPECT_EQ(JT_INT, json_get(j, "B")->type);
-    EXPECT_EQ(1, json_get(j, "A")->m_i64);
-    EXPECT_EQ(-2, json_get(j, "B")->m_i64);
+    EXPECT_EQ(JT_INT, json_get(j, "A").type);
+    EXPECT_EQ(JT_INT, json_get(j, "B").type);
+    EXPECT_EQ(1, json_get(j, "A").m_i64);
+    EXPECT_EQ(-2, json_get(j, "B").m_i64);
 
     /* Clean */
     json_clean(&j);
@@ -257,10 +258,10 @@ TEST(JsonObjectTest, SetU8) {
     /* Assert */
     EXPECT_EQ(JT_OBJECT, j.type);
     EXPECT_EQ(2, json_length(j));
-    EXPECT_EQ(JT_UINT, json_get(j, "A")->type);
-    EXPECT_EQ(JT_UINT, json_get(j, "B")->type);
-    EXPECT_EQ(1, json_get(j, "A")->m_u64);
-    EXPECT_EQ(2, json_get(j, "B")->m_u64);
+    EXPECT_EQ(JT_UINT, json_get(j, "A").type);
+    EXPECT_EQ(JT_UINT, json_get(j, "B").type);
+    EXPECT_EQ(1, json_get(j, "A").m_u64);
+    EXPECT_EQ(2, json_get(j, "B").m_u64);
 
     /* Clean */
     json_clean(&j);
@@ -277,10 +278,10 @@ TEST(JsonObjectTest, SetU16) {
     /* Assert */
     EXPECT_EQ(JT_OBJECT, j.type);
     EXPECT_EQ(2, json_length(j));
-    EXPECT_EQ(JT_UINT, json_get(j, "A")->type);
-    EXPECT_EQ(JT_UINT, json_get(j, "B")->type);
-    EXPECT_EQ(1, json_get(j, "A")->m_u64);
-    EXPECT_EQ(2, json_get(j, "B")->m_u64);
+    EXPECT_EQ(JT_UINT, json_get(j, "A").type);
+    EXPECT_EQ(JT_UINT, json_get(j, "B").type);
+    EXPECT_EQ(1, json_get(j, "A").m_u64);
+    EXPECT_EQ(2, json_get(j, "B").m_u64);
 
     /* Clean */
     json_clean(&j);
@@ -297,10 +298,10 @@ TEST(JsonObjectTest, SetU32) {
     /* Assert */
     EXPECT_EQ(JT_OBJECT, j.type);
     EXPECT_EQ(2, json_length(j));
-    EXPECT_EQ(JT_UINT, json_get(j, "A")->type);
-    EXPECT_EQ(JT_UINT, json_get(j, "B")->type);
-    EXPECT_EQ(1, json_get(j, "A")->m_u64);
-    EXPECT_EQ(2, json_get(j, "B")->m_u64);
+    EXPECT_EQ(JT_UINT, json_get(j, "A").type);
+    EXPECT_EQ(JT_UINT, json_get(j, "B").type);
+    EXPECT_EQ(1, json_get(j, "A").m_u64);
+    EXPECT_EQ(2, json_get(j, "B").m_u64);
 
     /* Clean */
     json_clean(&j);
@@ -317,10 +318,10 @@ TEST(JsonObjectTest, SetU64) {
     /* Assert */
     EXPECT_EQ(JT_OBJECT, j.type);
     EXPECT_EQ(2, json_length(j));
-    EXPECT_EQ(JT_UINT, json_get(j, "A")->type);
-    EXPECT_EQ(JT_UINT, json_get(j, "B")->type);
-    EXPECT_EQ(1, json_get(j, "A")->m_u64);
-    EXPECT_EQ(2, json_get(j, "B")->m_u64);
+    EXPECT_EQ(JT_UINT, json_get(j, "A").type);
+    EXPECT_EQ(JT_UINT, json_get(j, "B").type);
+    EXPECT_EQ(1, json_get(j, "A").m_u64);
+    EXPECT_EQ(2, json_get(j, "B").m_u64);
 
     /* Clean */
     json_clean(&j);
@@ -337,10 +338,10 @@ TEST(JsonObjectTest, SetF32) {
     /* Assert */
     EXPECT_EQ(JT_OBJECT, j.type);
     EXPECT_EQ(2, json_length(j));
-    EXPECT_EQ(JT_FLOAT, json_get(j, "A")->type);
-    EXPECT_EQ(JT_FLOAT, json_get(j, "B")->type);
-    EXPECT_EQ(1.0, json_get(j, "A")->m_f64);
-    EXPECT_EQ(-2.0, json_get(j, "B")->m_f64);
+    EXPECT_EQ(JT_FLOAT, json_get(j, "A").type);
+    EXPECT_EQ(JT_FLOAT, json_get(j, "B").type);
+    EXPECT_EQ(1.0, json_get(j, "A").m_f64);
+    EXPECT_EQ(-2.0, json_get(j, "B").m_f64);
 
     /* Clean */
     json_clean(&j);
@@ -357,10 +358,10 @@ TEST(JsonObjectTest, SetF64) {
     /* Assert */
     EXPECT_EQ(JT_OBJECT, j.type);
     EXPECT_EQ(2, json_length(j));
-    EXPECT_EQ(JT_FLOAT, json_get(j, "A")->type);
-    EXPECT_EQ(JT_FLOAT, json_get(j, "B")->type);
-    EXPECT_EQ(1.0, json_get(j, "A")->m_f64);
-    EXPECT_EQ(-2.0, json_get(j, "B")->m_f64);
+    EXPECT_EQ(JT_FLOAT, json_get(j, "A").type);
+    EXPECT_EQ(JT_FLOAT, json_get(j, "B").type);
+    EXPECT_EQ(1.0, json_get(j, "A").m_f64);
+    EXPECT_EQ(-2.0, json_get(j, "B").m_f64);
 
     /* Clean */
     json_clean(&j);
@@ -383,14 +384,14 @@ TEST(JsonObjectTest, SetValue) {
     /* Assert */
     EXPECT_EQ(JT_OBJECT, j.type);
     EXPECT_EQ(4, json_length(j));
-    EXPECT_EQ(JT_INT, json_get(j, "A")->type);
-    EXPECT_EQ(JT_STRING, json_get(j, "B")->type);
-    EXPECT_EQ(JT_OBJECT, json_get(j, "C")->type);
-    EXPECT_EQ(JT_ARRAY, json_get(j, "D")->type);
-    EXPECT_EQ(1, json_get(j, "A")->m_i64);
-    EXPECT_STREQ("2", json_get(j, "B")->m_text);
-    EXPECT_EQ(1, json_get(*json_get(j, "C"), "A")->m_i64);
-    EXPECT_STREQ("2", json_get(*json_get(j, "D"), 0)->m_text);
+    EXPECT_EQ(JT_INT, json_get(j, "A").type);
+    EXPECT_EQ(JT_STRING, json_get(j, "B").type);
+    EXPECT_EQ(JT_OBJECT, json_get(j, "C").type);
+    EXPECT_EQ(JT_ARRAY, json_get(j, "D").type);
+    EXPECT_EQ(1, json_get(j, "A").m_i64);
+    EXPECT_STREQ("2", json_get(j, "B").m_text);
+    EXPECT_EQ(1, json_get(json_get(j, "C"), "A").m_i64);
+    EXPECT_STREQ("2", json_get(json_get(j, "D"), 0).m_text);
 
     /* Clean */
     json_clean(&j);
@@ -413,10 +414,10 @@ TEST(JsonObjectTest, SetValueP) {
     /* Assert */
     EXPECT_EQ(JT_OBJECT, j.type);
     EXPECT_EQ(2, json_length(j));
-    EXPECT_EQ(JT_OBJECT, json_get(j, "A")->type);
-    EXPECT_EQ(JT_ARRAY, json_get(j, "B")->type);
-    EXPECT_EQ(1, json_get(*json_get(j, "A"), "A")->m_i64);
-    EXPECT_STREQ("2", json_get(*json_get(j, "B"), 0)->m_text);
+    EXPECT_EQ(JT_OBJECT, json_get(j, "A").type);
+    EXPECT_EQ(JT_ARRAY, json_get(j, "B").type);
+    EXPECT_EQ(1, json_get(json_get(j, "A"), "A").m_i64);
+    EXPECT_STREQ("2", json_get(json_get(j, "B"), 0).m_text);
 
     /* Clean */
     json_clean(&j);
@@ -443,28 +444,28 @@ TEST(JsonObjectTest, SetTerminalToken) {
     /* Assert */
     EXPECT_EQ(JT_OBJECT, j.type);
     EXPECT_EQ(12, json_length(j));
-    EXPECT_EQ(JT_INT, json_get(j, "A")->type);
-    EXPECT_EQ(JT_STRING, json_get(j, "B")->type);
-    EXPECT_EQ(JT_FLOAT, json_get(j, "C")->type);
-    EXPECT_EQ(JT_NULL, json_get(j, "D")->type);
-    EXPECT_EQ(JT_NULL, json_get(j, "E")->type);
-    EXPECT_EQ(JT_BOOL, json_get(j, "F")->type);
-    EXPECT_EQ(JT_BOOL, json_get(j, "G")->type);
-    EXPECT_EQ(JT_BOOL, json_get(j, "H")->type);
-    EXPECT_EQ(JT_INT, json_get(j, "I")->type);
-    EXPECT_EQ(JT_UINT, json_get(j, "J")->type);
-    EXPECT_EQ(JT_STRING, json_get(j, "K")->type);
-    EXPECT_EQ(JT_NUMBER, json_get(j, "L")->type);
-    EXPECT_EQ(1, json_get(j, "A")->m_i64);
-    EXPECT_STREQ("2", json_get(j, "B")->m_text);
-    EXPECT_EQ(3.14, json_get(j, "C")->m_f64);
-    EXPECT_TRUE(json_get(j, "F")->m_bool);
-    EXPECT_FALSE(json_get(j, "G")->m_bool);
-    EXPECT_TRUE(json_get(j, "H")->m_bool);
-    EXPECT_EQ(-1, json_get(j, "I")->m_i64);
-    EXPECT_EQ(1, json_get(j, "J")->m_u64);
-    EXPECT_STREQ("2", json_get(j, "K")->m_text);
-    EXPECT_STREQ("1.0", json_get(j, "L")->m_text);
+    EXPECT_EQ(JT_INT, json_get(j, "A").type);
+    EXPECT_EQ(JT_STRING, json_get(j, "B").type);
+    EXPECT_EQ(JT_FLOAT, json_get(j, "C").type);
+    EXPECT_EQ(JT_NULL, json_get(j, "D").type);
+    EXPECT_EQ(JT_NULL, json_get(j, "E").type);
+    EXPECT_EQ(JT_BOOL, json_get(j, "F").type);
+    EXPECT_EQ(JT_BOOL, json_get(j, "G").type);
+    EXPECT_EQ(JT_BOOL, json_get(j, "H").type);
+    EXPECT_EQ(JT_INT, json_get(j, "I").type);
+    EXPECT_EQ(JT_UINT, json_get(j, "J").type);
+    EXPECT_EQ(JT_STRING, json_get(j, "K").type);
+    EXPECT_EQ(JT_NUMBER, json_get(j, "L").type);
+    EXPECT_EQ(1, json_get(j, "A").m_i64);
+    EXPECT_STREQ("2", json_get(j, "B").m_text);
+    EXPECT_EQ(3.14, json_get(j, "C").m_f64);
+    EXPECT_TRUE(json_get(j, "F").m_bool);
+    EXPECT_FALSE(json_get(j, "G").m_bool);
+    EXPECT_TRUE(json_get(j, "H").m_bool);
+    EXPECT_EQ(-1, json_get(j, "I").m_i64);
+    EXPECT_EQ(1, json_get(j, "J").m_u64);
+    EXPECT_STREQ("2", json_get(j, "K").m_text);
+    EXPECT_STREQ("1.0", json_get(j, "L").m_text);
 
     /* Clean */
     json_clean(&j);
@@ -486,10 +487,10 @@ TEST(JsonObjectTest, SetReturnValue) {
     EXPECT_FALSE(res_3);
     EXPECT_EQ(JT_OBJECT, jobj.type);
     EXPECT_EQ(1, json_length(jobj));
-    EXPECT_EQ(JT_INT, json_get(jobj, "A")->type);
-    EXPECT_EQ(1, json_get(jobj, "A")->m_i64);
-    EXPECT_EQ(NULL, json_get(jobj, "B"));
-    EXPECT_EQ(NULL, json_get(jarr, "C"));
+    EXPECT_EQ(JT_INT, json_get(jobj, "A").type);
+    EXPECT_EQ(1, json_get(jobj, "A").m_i64);
+    EXPECT_EQ(JT_MISSING, json_get(jobj, "B").type);
+    EXPECT_EQ(JT_MISSING, json_get(jarr, "C").type);
 
     /* Clean */
     json_clean(&jobj);
@@ -510,13 +511,13 @@ TEST(JsonObjectTest, SetNestedArray) {
     /* Assert */
     EXPECT_EQ(JT_OBJECT, j.type);
     EXPECT_EQ(2, json_length(j));
-    EXPECT_EQ(JT_ARRAY, json_get(j, "A")->type);
-    EXPECT_EQ(2, json_length(*json_get(j, "A")));
-    EXPECT_EQ(JT_INT, json_get(*json_get(j, "A"), 0)->type);
-    EXPECT_EQ(JT_INT, json_get(*json_get(j, "A"), 1)->type);
-    EXPECT_EQ(1, json_get(*json_get(j, "A"), 0)->m_i64);
-    EXPECT_EQ(2, json_get(*json_get(j, "A"), 1)->m_i64);
-    EXPECT_EQ(3, json_get(j, "B")->m_i64);
+    EXPECT_EQ(JT_ARRAY, json_get(j, "A").type);
+    EXPECT_EQ(2, json_length(json_get(j, "A")));
+    EXPECT_EQ(JT_INT, json_get(json_get(j, "A"), 0).type);
+    EXPECT_EQ(JT_INT, json_get(json_get(j, "A"), 1).type);
+    EXPECT_EQ(1, json_get(json_get(j, "A"), 0).m_i64);
+    EXPECT_EQ(2, json_get(json_get(j, "A"), 1).m_i64);
+    EXPECT_EQ(3, json_get(j, "B").m_i64);
 
     /* Clean */
     json_clean(&j);
@@ -538,8 +539,8 @@ TEST(JsonObjectTest, DeleteNestedArray) {
     /* Assert */
     EXPECT_EQ(JT_OBJECT, j.type);
     EXPECT_EQ(1, json_length(j));
-    EXPECT_EQ(JT_INT, json_get(j, "B")->type);
-    EXPECT_EQ(3, json_get(j, "B")->m_i64);
+    EXPECT_EQ(JT_INT, json_get(j, "B").type);
+    EXPECT_EQ(3, json_get(j, "B").m_i64);
 
     /* Clean */
     json_clean(&j);
@@ -560,13 +561,13 @@ TEST(JsonObjectTest, SetNestedObject) {
     /* Assert */
     EXPECT_EQ(JT_OBJECT, j.type);
     EXPECT_EQ(2, json_length(j));
-    EXPECT_EQ(JT_OBJECT, json_get(j, "A")->type);
-    EXPECT_EQ(2, json_length(*json_get(j, "A")));
-    EXPECT_EQ(JT_INT, json_get(*json_get(j, "A"), "A")->type);
-    EXPECT_EQ(JT_INT, json_get(*json_get(j, "A"), "B")->type);
-    EXPECT_EQ(1, json_get(*json_get(j, "A"), "A")->m_i64);
-    EXPECT_EQ(2, json_get(*json_get(j, "A"), "B")->m_i64);
-    EXPECT_EQ(3, json_get(j, "B")->m_i64);
+    EXPECT_EQ(JT_OBJECT, json_get(j, "A").type);
+    EXPECT_EQ(2, json_length(json_get(j, "A")));
+    EXPECT_EQ(JT_INT, json_get(json_get(j, "A"), "A").type);
+    EXPECT_EQ(JT_INT, json_get(json_get(j, "A"), "B").type);
+    EXPECT_EQ(1, json_get(json_get(j, "A"), "A").m_i64);
+    EXPECT_EQ(2, json_get(json_get(j, "A"), "B").m_i64);
+    EXPECT_EQ(3, json_get(j, "B").m_i64);
 
     /* Clean */
     json_clean(&j);
@@ -588,8 +589,8 @@ TEST(JsonObjectTest, DeleteNestedObject) {
     /* Assert */
     EXPECT_EQ(JT_OBJECT, j.type);
     EXPECT_EQ(1, json_length(j));
-    EXPECT_EQ(JT_INT, json_get(j, "D")->type);
-    EXPECT_EQ(3, json_get(j, "D")->m_i64);
+    EXPECT_EQ(JT_INT, json_get(j, "D").type);
+    EXPECT_EQ(3, json_get(j, "D").m_i64);
 
     /* Clean */
     json_clean(&j);
@@ -608,16 +609,16 @@ TEST(JsonObjectTest, JsonDupObject) {
     /* Assert */
     EXPECT_EQ(JT_OBJECT, j.type);
     EXPECT_EQ(2, json_length(j));
-    EXPECT_EQ(JT_INT, json_get(j, "A")->type);
-    EXPECT_EQ(JT_STRING, json_get(j, "B")->type);
-    EXPECT_EQ(1, json_get(j, "A")->m_i64);
-    EXPECT_STREQ("2", json_get(j, "B")->m_text);
+    EXPECT_EQ(JT_INT, json_get(j, "A").type);
+    EXPECT_EQ(JT_STRING, json_get(j, "B").type);
+    EXPECT_EQ(1, json_get(j, "A").m_i64);
+    EXPECT_STREQ("2", json_get(j, "B").m_text);
     EXPECT_EQ(JT_OBJECT, res.type);
     EXPECT_EQ(2, json_length(res));
-    EXPECT_EQ(JT_INT, json_get(res, "A")->type);
-    EXPECT_EQ(JT_STRING, json_get(res, "B")->type);
-    EXPECT_EQ(1, json_get(res, "A")->m_i64);
-    EXPECT_STREQ("2", json_get(res, "B")->m_text);
+    EXPECT_EQ(JT_INT, json_get(res, "A").type);
+    EXPECT_EQ(JT_STRING, json_get(res, "B").type);
+    EXPECT_EQ(1, json_get(res, "A").m_i64);
+    EXPECT_STREQ("2", json_get(res, "B").m_text);
 
     /* Clean */
     json_clean(&j);
@@ -651,8 +652,8 @@ TEST(JsonObjectTest, CleanDupObject) {
     /* Assert */
     EXPECT_EQ(JT_OBJECT, res.type);
     EXPECT_EQ(2, json_length(res));
-    EXPECT_EQ(JT_INT, json_get(res, "A")->type);
-    EXPECT_EQ(JT_STRING, json_get(res, "B")->type);
+    EXPECT_EQ(JT_INT, json_get(res, "A").type);
+    EXPECT_EQ(JT_STRING, json_get(res, "B").type);
 
     /* Clena */
     json_clean(&res);
@@ -680,7 +681,7 @@ TEST(JsonObjectTest, DumpsDupNestedObject) {
     union json_t j = JSON_OBJECT;
     json_set(&j, "A", JSON_INT(1));
     json_set(&j, "B", JSON_OBJECT);
-    json_set(json_get(j, "B"), "C", JSON_STRING("2"));
+    json_set(json_getp(j, "B"), "C", JSON_STRING("2"));
 
     /* Act */
     union json_t res = json_dup(j);
@@ -700,7 +701,7 @@ TEST(JsonObjectTest, DumpsDupNestedArray) {
     union json_t j = JSON_OBJECT;
     json_set(&j, "A", JSON_INT(1));
     json_set(&j, "B", JSON_ARRAY);
-    json_append(json_get(j, "B"), JSON_INT(2));
+    json_append(json_getp(j, "B"), JSON_INT(2));
 
     /* Act */
     union json_t res = json_dup(j);
@@ -713,6 +714,38 @@ TEST(JsonObjectTest, DumpsDupNestedArray) {
     free(res_str);
     json_clean(&j);
     json_clean(&res);
+}
+
+TEST(JsonObjectTest, JsonMerge) {
+    /* Arrange */
+    union json_t j1 = JSON_OBJECT;
+    union json_t j2 = JSON_OBJECT;
+    json_set(&j1, "A", 1);
+    json_set(&j1, "B", 2);
+    json_set(&j1, "C", 100);
+    json_set(&j2, "C", 3);
+    json_set(&j2, "D", 4);
+
+    /* Act */
+    json_merge(&j1, j2);
+
+    /* Assert */
+    EXPECT_EQ(JT_OBJECT, j1.type);
+    EXPECT_EQ(4, json_length(j1));
+
+    EXPECT_EQ(JT_INT, json_get(j1, "A").type);
+    EXPECT_EQ(JT_INT, json_get(j1, "B").type);
+    EXPECT_EQ(JT_INT, json_get(j1, "C").type);
+    EXPECT_EQ(JT_INT, json_get(j1, "D").type);
+
+    EXPECT_EQ(1, json_get(j1, "A").m_i64);
+    EXPECT_EQ(2, json_get(j1, "B").m_i64);
+    EXPECT_EQ(3, json_get(j1, "C").m_i64);
+    EXPECT_EQ(4, json_get(j1, "D").m_i64);
+
+    /* Clean */
+    json_clean(&j1);
+    json_clean(&j2);
 }
 
 TEST(JsonObjectTest, SetAgain) {
@@ -746,26 +779,26 @@ TEST(JsonObjectTest, SetAgain) {
     /* Assert */
     EXPECT_EQ(JT_OBJECT, j.type);
     EXPECT_EQ(8, json_length(j));
-    EXPECT_EQ(JT_FLOAT, json_get(j, "A")->type);
-    EXPECT_EQ(JT_STRING, json_get(j, "B")->type);
-    EXPECT_EQ(JT_ARRAY, json_get(j, "C")->type);
-    EXPECT_EQ(JT_OBJECT, json_get(j, "D")->type);
-    EXPECT_EQ(JT_OBJECT, json_get(j, "E")->type);
-    EXPECT_EQ(JT_ARRAY, json_get(j, "F")->type);
-    EXPECT_EQ(JT_BOOL, json_get(j, "G")->type);
-    EXPECT_EQ(JT_INT, json_get(j, "H")->type);
-    EXPECT_EQ(1.0, json_get(j, "A")->m_f64);
-    EXPECT_STREQ("2", json_get(j, "B")->m_text);
-    EXPECT_EQ(0, json_length(*json_get(j, "C")));
-    EXPECT_EQ(0, json_length(*json_get(j, "D")));
-    EXPECT_EQ(2, json_length(*json_get(j, "E")));
-    EXPECT_EQ(2, json_length(*json_get(j, "F")));
-    EXPECT_FALSE(json_get(j, "G")->m_bool);
-    EXPECT_EQ(-1, json_get(j, "H")->m_i64);
-    EXPECT_EQ(1, json_get(*json_get(j, "E"), "A")->m_i64);
-    EXPECT_EQ(2, json_get(*json_get(j, "E"), "B")->m_i64);
-    EXPECT_EQ(3, json_get(*json_get(j, "F"), 0)->m_i64);
-    EXPECT_EQ(4, json_get(*json_get(j, "F"), 1)->m_i64);
+    EXPECT_EQ(JT_FLOAT, json_get(j, "A").type);
+    EXPECT_EQ(JT_STRING, json_get(j, "B").type);
+    EXPECT_EQ(JT_ARRAY, json_get(j, "C").type);
+    EXPECT_EQ(JT_OBJECT, json_get(j, "D").type);
+    EXPECT_EQ(JT_OBJECT, json_get(j, "E").type);
+    EXPECT_EQ(JT_ARRAY, json_get(j, "F").type);
+    EXPECT_EQ(JT_BOOL, json_get(j, "G").type);
+    EXPECT_EQ(JT_INT, json_get(j, "H").type);
+    EXPECT_EQ(1.0, json_get(j, "A").m_f64);
+    EXPECT_STREQ("2", json_get(j, "B").m_text);
+    EXPECT_EQ(0, json_length(json_get(j, "C")));
+    EXPECT_EQ(0, json_length(json_get(j, "D")));
+    EXPECT_EQ(2, json_length(json_get(j, "E")));
+    EXPECT_EQ(2, json_length(json_get(j, "F")));
+    EXPECT_FALSE(json_get(j, "G").m_bool);
+    EXPECT_EQ(-1, json_get(j, "H").m_i64);
+    EXPECT_EQ(1, json_get(json_get(j, "E"), "A").m_i64);
+    EXPECT_EQ(2, json_get(json_get(j, "E"), "B").m_i64);
+    EXPECT_EQ(3, json_get(json_get(j, "F"), 0).m_i64);
+    EXPECT_EQ(4, json_get(json_get(j, "F"), 1).m_i64);
 
     /* Clean */
     json_clean(&j);
@@ -788,10 +821,10 @@ TEST(JsonObjectTest, SetEmptyToDelete) {
     /* Assert */
     EXPECT_EQ(JT_OBJECT, j.type);
     EXPECT_EQ(2, json_length(j));
-    EXPECT_EQ(JT_INT, json_get(j, "A")->type);
-    EXPECT_EQ(JT_INT, json_get(j, "C")->type);
-    EXPECT_EQ(1, json_get(j, "A")->m_i64);
-    EXPECT_EQ(3, json_get(j, "C")->m_i64);
+    EXPECT_EQ(JT_INT, json_get(j, "A").type);
+    EXPECT_EQ(JT_INT, json_get(j, "C").type);
+    EXPECT_EQ(1, json_get(j, "A").m_i64);
+    EXPECT_EQ(3, json_get(j, "C").m_i64);
 
     /* Clean */
     json_clean(&j);

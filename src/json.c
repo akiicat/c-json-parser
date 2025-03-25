@@ -479,11 +479,46 @@ union json_t json_create_obj(size_t capacity) {
     return j;
 }
 
-union json_t *__json_get_from_obj(union json_t j, const char *key) {
+union json_t *__json_getp_from_obj(union json_t j, const char *key) {
     if (j.type != JT_OBJECT)
         return NULL;
     struct json_pair_t *p = jsonext_obj_get(&j, key);
     return p ? &p->value : NULL;
+}
+
+union json_t __json_get_from_obj(union json_t j, const char *key) {
+    union json_t empty = {.type = JT_MISSING};
+    union json_t *res = __json_getp_from_obj(j, key);
+    return res ? *res : empty;
+}
+
+struct json_pair_t *json_obj_iter_first(union json_t j) {
+    if (j.type != JT_OBJECT)
+        return NULL;
+    return jsonext_obj_iter_first(&j);
+}
+
+struct json_pair_t *json_obj_iter_next(union json_t j, struct json_pair_t *it) {
+    if (j.type != JT_OBJECT)
+        return NULL;
+    return jsonext_obj_iter_next(&j, it);
+}
+
+void __json_merge(union json_t *j, union json_t from) {
+    if (!j || j->type != JT_OBJECT || from.type != JT_OBJECT)
+        return;
+    struct json_pair_t *it = jsonext_obj_iter_first(&from);
+    for (size_t i = 0; i < jsonext_obj_length(&from); i++) {
+        json_set_value(j, it->key, it->value);
+        it = jsonext_obj_iter_next(&from, it);
+    }
+}
+
+void __json_merge_p(union json_t *j, union json_t *from) {
+    if (!j || j->type != JT_OBJECT || from->type != JT_OBJECT)
+        return;
+    __json_merge(j, *from);
+    json_clean(from);
 }
 
 union json_t __json_remove_from_obj(union json_t *j, const char *key) {
@@ -515,7 +550,7 @@ bool __json_set(union json_t *j, const char *key, size_t key_len, union json_t v
         return true;
     }
 
-    union json_t *exist_value = __json_get_from_obj(*j, key);
+    union json_t *exist_value = __json_getp_from_obj(*j, key);
 
     if (exist_value) {
         printf("%s:%d Obj Key Exist key=%s\n", __func__, __LINE__, key);
@@ -597,11 +632,32 @@ union json_t json_create_arr(size_t capacity) {
     return j;
 }
 
-union json_t *__json_get_from_arr(union json_t j, long int i) {
+void __json_concat(union json_t *j, union json_t from) {
+    if (!j || j->type != JT_ARRAY || from.type != JT_ARRAY)
+        return;
+    for (size_t i = jsonext_arr_length(j) - 1; i < jsonext_arr_length(j); i--) {
+        json_append_value(j, __json_get_from_arr(from, i));
+    }
+}
+
+void __json_concat_p(union json_t *j, union json_t *from) {
+    if (!j || j->type != JT_ARRAY || from->type != JT_ARRAY)
+        return;
+    __json_concat(j, *from);
+    json_clean(from);
+}
+
+union json_t *__json_getp_from_arr(union json_t j, long int i) {
     if (j.type != JT_ARRAY)
         return NULL;
     size_t index = (i < 0) ? jsonext_arr_length(&j) + i : (size_t)i;
     return jsonext_arr_get(&j, index);
+}
+
+union json_t __json_get_from_arr(union json_t j, long int i) {
+    union json_t empty = {.type = JT_MISSING};
+    union json_t *res = __json_getp_from_arr(j, i);
+    return res ? *res : empty;
 }
 
 union json_t __json_remove_from_arr(union json_t *j, long int i) {
