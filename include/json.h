@@ -300,6 +300,25 @@ bool json_append_value_p(union json_t *j, union json_t *value);
         json_t: json_append_value,                                                                                     \
         json_t *: json_append_value_p,                                                                                 \
         default: json_append_value)((j), (value))
+
+#define json_set_arr_func(value) _Generic((value),                                                                                                  \
+            const char *: json_set_arr_str,                                                                                    \
+            char *: json_set_arr_str,                                                                                          \
+            bool: json_set_arr_bool,                                                                                           \
+            void *: json_set_arr_null,                                                                                         \
+            int8_t: json_set_arr_i8,                                                                                           \
+            int16_t: json_set_arr_i16,                                                                                         \
+            int32_t: json_set_arr_i32,                                                                                         \
+            int64_t: json_set_arr_i64,                                                                                         \
+            uint8_t: json_set_arr_u8,                                                                                          \
+            uint16_t: json_set_arr_u16,                                                                                        \
+            uint32_t: json_set_arr_u32,                                                                                        \
+            uint64_t: json_set_arr_u64,                                                                                        \
+            float: json_set_arr_f32,                                                                                           \
+            double: json_set_arr_f64,                                                                                          \
+            json_t: json_set_arr_value,                                                                                        \
+            json_t *: json_set_arr_value_p,                                                                                    \
+            default: json_set_arr_value)
 #endif
 
 // --------------------------------------------------
@@ -311,17 +330,17 @@ union json_t json_dup(union json_t j);
 #ifndef __cplusplus
 #define json_set(j, key, value)                                                                                        \
     _Generic((key),                  \
-        const char *: json_set_func(value), \
-        char *: json_set_func(value), \
-        int8_t: json_set_func(value),                                                                                       \
-        int16_t: json_set_func(value),                                                                                      \
-        int32_t: json_set_func(value),                                                                                      \
-        int64_t: json_set_func(value),                                                                                      \
-        uint8_t: json_set_func(value),                                                                                      \
-        uint16_t: json_set_func(value),                                                                                     \
-        uint32_t: json_set_func(value),                                                                                     \
-        uint64_t: json_set_func(value),                                                                                     \
-        default: json_set_func(value) \
+        const char *: json_set_obj_func(value), \
+        char *: json_set_obj_func(value), \
+        int8_t: json_set_arr_func(value),                                                                                       \
+        int16_t: json_set_arr_func(value),                                                                                      \
+        int32_t: json_set_arr_func(value),                                                                                      \
+        int64_t: json_set_arr_func(value),                                                                                      \
+        uint8_t: json_set_arr_func(value),                                                                                      \
+        uint16_t: json_set_arr_func(value),                                                                                     \
+        uint32_t: json_set_arr_func(value),                                                                                     \
+        uint64_t: json_set_arr_func(value),                                                                                     \
+        default: json_set_obj_func(value) \
     )((j), (key), (value))
 #define json_get(j, key)                                                                                               \
     _Generic((key), const char *: __json_get_from_obj, char *: __json_get_from_obj, default: __json_get_from_arr)(     \

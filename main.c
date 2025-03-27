@@ -63,24 +63,24 @@ void obj_test() {
     json_set(&obj, "Object", JSON_OBJECT);
 
     json_set(&obj, "Delete1", "JSON_EMPTY");
-    json_set(&obj, "Delete1", JSON_EMPTY);
+    json_set(&obj, "Delete1", JSON_DELETE);
     json_set(&obj, "Delete2", "JSON_EMPTY");
     json_delete(&obj, "Delete2");
 
     json_set(&obj, "Array", JSON_ARRAY);
-    json_append(json_get(obj, "Array"), 123);
-    json_append(json_get(obj, "Array"), "INDEX = 1 DELETE LATER");
-    json_append(json_get(obj, "Array"), 123.456);
-    json_append(json_get(obj, "Array"), JSON_NUMBER("123.456"));
-    json_append(json_get(obj, "Array"), JSON_NULL);
-    json_append(json_get(obj, "Array"), JSON_TRUE);
-    json_append(json_get(obj, "Array"), JSON_FALSE);
-    json_append(json_get(obj, "Array"), JSON_BOOL(true));
-    json_append(json_get(obj, "Array"), JSON_BOOL(false));
-    json_delete(json_get(obj, "Array"), 1);
-    json_delete(json_get(obj, "Array"), json_length(*json_get(obj, "Array")) - 1);
+    json_append(json_getp(obj, "Array"), 123);
+    json_append(json_getp(obj, "Array"), "INDEX = 1 DELETE LATER");
+    json_append(json_getp(obj, "Array"), 123.456);
+    json_append(json_getp(obj, "Array"), JSON_NUMBER("123.456"));
+    json_append(json_getp(obj, "Array"), JSON_NULL);
+    json_append(json_getp(obj, "Array"), JSON_TRUE);
+    json_append(json_getp(obj, "Array"), JSON_FALSE);
+    json_append(json_getp(obj, "Array"), JSON_BOOL(true));
+    json_append(json_getp(obj, "Array"), JSON_BOOL(false));
+    json_delete(json_getp(obj, "Array"), 1);
+    json_delete(json_getp(obj, "Array"), json_length(json_get(obj, "Array")) - 1);
 
-    union json_t arr_dup = json_dup(*json_get(obj, "Array"));
+    union json_t arr_dup = json_dup(json_get(obj, "Array"));
     json_append(&arr_dup, "DUP");
     json_set(&obj, "Arr Dup", &arr_dup);
 
@@ -98,9 +98,9 @@ void obj_test() {
     json_clean(&innerObj);
     printf("OK\n");
 
-    json_set(json_get(obj, "Object"), "Test1", "OK1");
-    json_set(json_get(obj, "Object"), "Test1", "OK123");
-    json_set(json_get(obj, "Object Not Exist"), "Test1", "Fail");
+    json_set(json_getp(obj, "Object"), "Test1", "OK1");
+    json_set(json_getp(obj, "Object"), "Test1", "OK123");
+    json_set(json_getp(obj, "Object Not Exist"), "Test1", "Fail");
 
     union json_t obj3 = json_dup(obj);
     json_set(&obj3, "Test1", "OK");
@@ -108,12 +108,12 @@ void obj_test() {
     json_set(&obj3, "Test2", "OK");
 
     printf("Name=%p type=%s value=%s\n",
-        json_get(obj3, "Test1"),
-        (json_get(obj3, "Test1") ? json_type2str(json_get(obj3, "Test1")->type) : ""),
-        (json_get(obj3, "Test1") ? json_get(obj3, "Test1")->tok.text : ""));
-    printf("Name=%p type=%s value=%s\n", json_get(obj3, "Test2"), 
-        (json_get(obj3, "Test2") ? json_type2str(json_get(obj3, "Test2")->type) : ""),
-        (json_get(obj3, "Test2") ? json_get(obj3, "Test2")->tok.text : ""));
+        json_getp(obj3, "Test1"),
+        (json_getp(obj3, "Test1") ? json_type2str(json_get(obj3, "Test1").type) : ""),
+        (json_getp(obj3, "Test1") ? json_get(obj3, "Test1").tok.text : ""));
+    printf("Name=%p type=%s value=%s\n", json_getp(obj3, "Test2"), 
+        (json_getp(obj3, "Test2") ? json_type2str(json_get(obj3, "Test2").type) : ""),
+        (json_getp(obj3, "Test2") ? json_get(obj3, "Test2").tok.text : ""));
 
     json_print(obj3);
     json_clean(&obj3);
@@ -209,7 +209,7 @@ int main(int argc, char *argv[]) {
     //     fseek(stream, 0, SEEK_SET);
     // }
 
-    // obj_test();
+    obj_test();
 
     struct json_lexer_context_t *lexer_ctx = json_create_lexer(buffer);
     json_execute_lexer(lexer_ctx);
