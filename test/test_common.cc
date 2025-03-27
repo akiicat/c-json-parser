@@ -13,11 +13,11 @@ TEST(JsonCommonTest, JsonDupText) {
     union json_t res = json_dup(j);
 
     /* Assert */
-    EXPECT_STREQ(j.tok.text, res.tok.text);
+    EXPECT_STREQ(j.text, res.text);
 
     /* Clean up */
     EXPECT_EQ(JT_STRING, j.type);
-    free(res.tok.text);
+    free(res.text);
 }
 
 TEST(JsonCommonTest, JsonDupRawNumber) {
@@ -29,10 +29,10 @@ TEST(JsonCommonTest, JsonDupRawNumber) {
 
     /* Assert */
     EXPECT_EQ(JT_NUMBER, j.type);
-    EXPECT_STREQ(j.tok.text, res.tok.text);
+    EXPECT_STREQ(j.text, res.text);
 
     /* Clean up */
-    free(res.tok.text);
+    free(res.text);
 }
 
 TEST(JsonCommonTest, JsonDupInt) {
@@ -44,7 +44,7 @@ TEST(JsonCommonTest, JsonDupInt) {
 
     /* Assert */
     EXPECT_EQ(JT_INT, j.type);
-    EXPECT_EQ(j.tok.i64, res.tok.i64);
+    EXPECT_EQ(j.i64, res.i64);
 }
 
 TEST(JsonCommonTest, JsonDupUint) {
@@ -56,7 +56,7 @@ TEST(JsonCommonTest, JsonDupUint) {
 
     /* Assert */
     EXPECT_EQ(JT_UINT, j.type);
-    EXPECT_EQ(j.tok.u64, res.tok.u64);
+    EXPECT_EQ(j.u64, res.u64);
 }
 
 TEST(JsonCommonTest, JsonDupBool) {
@@ -68,7 +68,7 @@ TEST(JsonCommonTest, JsonDupBool) {
 
     /* Assert */
     EXPECT_EQ(JT_BOOL, j.type);
-    EXPECT_EQ(j.tok.boolean, res.tok.boolean);
+    EXPECT_EQ(j.boolean, res.boolean);
 }
 
 TEST(JsonCommonTest, JsonDupNull) {
@@ -92,7 +92,7 @@ TEST(JsonCommonTest, JsonDupFloat) {
 
     /* Assert */
     EXPECT_EQ(JT_FLOAT, j.type);
-    EXPECT_EQ(j.tok.f64, res.tok.f64);
+    EXPECT_EQ(j.f, res.f);
 }
 
 TEST(JsonCommonTest, JsonTerminalTokenLength) {
@@ -104,7 +104,7 @@ TEST(JsonCommonTest, JsonTerminalTokenLength) {
 
     /* Assert */
     EXPECT_EQ(JT_INT, j.type);
-    EXPECT_EQ(123, j.tok.i64);
+    EXPECT_EQ(123, j.i64);
     EXPECT_EQ(0, res);
 }
 
@@ -117,7 +117,7 @@ TEST(JsonCommonTest, JsonTerminalTokenCapacity) {
 
     /* Assert */
     EXPECT_EQ(JT_INT, j.type);
-    EXPECT_EQ(123, j.tok.i64);
+    EXPECT_EQ(123, j.i64);
     EXPECT_EQ(0, res);
 }
 
@@ -131,7 +131,7 @@ TEST(JsonCommonTest, JsonGetTerminalToken) {
 
     /* Assert */
     EXPECT_EQ(JT_INT, j.type);
-    EXPECT_EQ(123, j.tok.i64);
+    EXPECT_EQ(123, j.i64);
     EXPECT_EQ(NULL, res_1);
     EXPECT_EQ(NULL, res_2);
 }
@@ -146,7 +146,7 @@ TEST(JsonCommonTest, JsonSetTerminalToken) {
     /* Assert */
     EXPECT_FALSE(res);
     EXPECT_EQ(JT_INT, j.type);
-    EXPECT_EQ(123, j.tok.i64);
+    EXPECT_EQ(123, j.i64);
 }
 
 TEST(JsonCommonTest, JsonRemoveTerminalToken) {
@@ -159,7 +159,7 @@ TEST(JsonCommonTest, JsonRemoveTerminalToken) {
 
     /* Assert */
     EXPECT_EQ(JT_INT, j.type);
-    EXPECT_EQ(123, j.tok.i64);
+    EXPECT_EQ(123, j.i64);
     EXPECT_EQ(JT_MISSING, res_1.type);
     EXPECT_EQ(JT_MISSING, res_2.type);
 }
@@ -174,7 +174,7 @@ TEST(JsonCommonTest, JsonDeleteTerminalToken) {
 
     /* Assert */
     EXPECT_EQ(JT_INT, j.type);
-    EXPECT_EQ(123, j.tok.i64);
+    EXPECT_EQ(123, j.i64);
 }
 
 TEST(JsonCommonTest, JsonAppendTerminalToken) {
@@ -187,7 +187,7 @@ TEST(JsonCommonTest, JsonAppendTerminalToken) {
     /* Assert */
     EXPECT_FALSE(res);
     EXPECT_EQ(JT_INT, j.type);
-    EXPECT_EQ(123, j.tok.i64);
+    EXPECT_EQ(123, j.i64);
 }
 
 TEST(JsonCommonTest, JsonCleanTerminalToken) {
@@ -199,7 +199,7 @@ TEST(JsonCommonTest, JsonCleanTerminalToken) {
 
     /* Assert */
     EXPECT_EQ(JT_INT, j.type);
-    EXPECT_EQ(123, j.tok.i64);
+    EXPECT_EQ(123, j.i64);
 }
 
 TEST(JsonCommonTest, CleanDupText) {
@@ -211,7 +211,7 @@ TEST(JsonCommonTest, CleanDupText) {
 
     /* Assert */
     EXPECT_EQ(JT_STRING, j.type);
-    EXPECT_EQ(NULL, j.tok.text);
+    EXPECT_EQ(NULL, j.text);
 }
 
 TEST(JsonCommonTest, CleanDupRawNumber) {
@@ -223,7 +223,7 @@ TEST(JsonCommonTest, CleanDupRawNumber) {
 
     /* Assert */
     EXPECT_EQ(JT_NUMBER, j.type);
-    EXPECT_EQ(NULL, j.tok.text);
+    EXPECT_EQ(NULL, j.text);
 }
 
 TEST(JsonCommonTest, DumpsTerminalToken) {

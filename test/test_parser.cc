@@ -21,8 +21,8 @@ TEST(JsonParserTest, LoadJsonFilePointer) {
     EXPECT_EQ(2, json_length(j));
     EXPECT_EQ(JT_NUMBER, json_get(j, "A").type);
     EXPECT_EQ(JT_STRING, json_get(j, "B").type);
-    EXPECT_STREQ("1", json_get(j, "A").m_text);
-    EXPECT_STREQ("2", json_get(j, "B").m_text);
+    EXPECT_STREQ("1", json_get(j, "A").text);
+    EXPECT_STREQ("2", json_get(j, "B").text);
 
     /* Clean */
     json_clean(&j);
@@ -41,8 +41,8 @@ TEST(JsonParserTest, LoadJsonString) {
     EXPECT_EQ(2, json_length(j));
     EXPECT_EQ(JT_NUMBER, json_get(j, "A").type);
     EXPECT_EQ(JT_STRING, json_get(j, "B").type);
-    EXPECT_STREQ("1", json_get(j, "A").m_text);
-    EXPECT_STREQ("2", json_get(j, "B").m_text);
+    EXPECT_STREQ("1", json_get(j, "A").text);
+    EXPECT_STREQ("2", json_get(j, "B").text);
 
     /* Clean */
     json_clean(&j);
@@ -68,8 +68,8 @@ TEST(JsonParserTest, LoadJsonFile) {
     EXPECT_EQ(2, json_length(j));
     EXPECT_EQ(JT_NUMBER, json_get(j, "A").type);
     EXPECT_EQ(JT_STRING, json_get(j, "B").type);
-    EXPECT_STREQ("1", json_get(j, "A").m_text);
-    EXPECT_STREQ("2", json_get(j, "B").m_text);
+    EXPECT_STREQ("1", json_get(j, "A").text);
+    EXPECT_STREQ("2", json_get(j, "B").text);
 
     /* Clean */
     json_clean(&j);
@@ -120,10 +120,10 @@ TEST(JsonParserTest, ParseNestedArray) {
     EXPECT_EQ(JT_ARRAY, json_get(j, 3).type);
     EXPECT_EQ(JT_ARRAY, json_get(j, 4).type);
     EXPECT_EQ(JT_OBJECT, json_get(j, 5).type);
-    EXPECT_TRUE(json_get(j, 0).m_bool);
-    EXPECT_FALSE(json_get(j, 1).m_bool);
-    EXPECT_STREQ("1", json_get(json_get(j, 3), 0).m_text);
-    EXPECT_STREQ("2", json_get(json_get(j, 3), 1).m_text);
+    EXPECT_TRUE(json_get(j, 0).boolean);
+    EXPECT_FALSE(json_get(j, 1).boolean);
+    EXPECT_STREQ("1", json_get(json_get(j, 3), 0).text);
+    EXPECT_STREQ("2", json_get(json_get(j, 3), 1).text);
     EXPECT_EQ(2, json_length(json_get(j, 3)));
     EXPECT_EQ(0, json_length(json_get(j, 4)));
     EXPECT_EQ(0, json_length(json_get(j, 5)));
@@ -146,9 +146,9 @@ TEST(JsonParserTest, ParseNestedObject) {
     EXPECT_EQ(JT_OBJECT, json_get(j, "B").type);
     EXPECT_EQ(JT_OBJECT, json_get(j, "E").type);
     EXPECT_EQ(JT_ARRAY, json_get(j, "F").type);
-    EXPECT_STREQ("1", json_get(j, "A").m_text);
-    EXPECT_STREQ("2", json_get(json_get(j, "B"), "C").m_text);
-    EXPECT_STREQ("3", json_get(json_get(j, "B"), "D").m_text);
+    EXPECT_STREQ("1", json_get(j, "A").text);
+    EXPECT_STREQ("2", json_get(json_get(j, "B"), "C").text);
+    EXPECT_STREQ("3", json_get(json_get(j, "B"), "D").text);
     EXPECT_EQ(2, json_length(json_get(j, "B")));
     EXPECT_EQ(0, json_length(json_get(j, "E")));
     EXPECT_EQ(0, json_length(json_get(j, "F")));

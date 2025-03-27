@@ -87,8 +87,8 @@ union json_t json_dup(union json_t j) {
     case JT_UINT:
     case JT_FLOAT: {
         res.tok = j.tok;
-        if (j.tok.text)
-            res.tok.text = json_strdup(j.tok.text);
+        if (j.text)
+            res.text = json_strdup(j.text);
         break;
     }
     case JT_ARRAY: {
@@ -106,7 +106,7 @@ union json_t json_dup(union json_t j) {
         size_t i;
         struct json_pair_t *it = jsonext_obj_iter_first(&j);
         for (i = 0; i < jsonext_obj_length(&j); i++) {
-            json_set_value(&res, it->key, it->value);
+            json_set_obj_value(&res, it->key, it->value);
             it = jsonext_obj_iter_next(&j, it);
         }
 
@@ -235,25 +235,25 @@ static void sb_append_crlf(struct sb *sb, int indent) {
 static void json_dumps_internal(union json_t j, int offset, int indent, struct sb *sb) {
     switch (j.type) {
     case JT_STRING:
-        sb_appendf(sb, "\"%s\"", j.tok.text);
+        sb_appendf(sb, "\"%s\"", j.text);
         break;
     case JT_NUMBER:
-        sb_appendf(sb, "%s", j.tok.text);
+        sb_appendf(sb, "%s", j.text);
         break;
     case JT_BOOL:
-        sb_append(sb, j.tok.boolean ? "true" : "false");
+        sb_append(sb, j.boolean ? "true" : "false");
         break;
     case JT_NULL:
         sb_append(sb, "null");
         break;
     case JT_INT:
-        sb_appendf(sb, "%ld", j.tok.u64);
+        sb_appendf(sb, "%ld", j.u64);
         break;
     case JT_UINT:
-        sb_appendf(sb, "%lu", j.tok.u64);
+        sb_appendf(sb, "%lu", j.u64);
         break;
     case JT_FLOAT:
-        sb_appendf(sb, "%lf", j.tok.f64);
+        sb_appendf(sb, "%lf", j.f);
         break;
     case JT_ARRAY: {
         size_t length = jsonext_arr_length(&j);
@@ -341,25 +341,25 @@ static void print_crlf(FILE *fp, int diff) {
 static void json_print_internal(union json_t j, int offset, int indent, FILE *fp) {
     switch (j.type) {
     case JT_STRING:
-        fprintf(fp, "\"%s\"", j.tok.text);
+        fprintf(fp, "\"%s\"", j.text);
         break;
     case JT_NUMBER:
-        fprintf(fp, "%s", j.tok.text);
+        fprintf(fp, "%s", j.text);
         break;
     case JT_BOOL:
-        fprintf(fp, j.tok.boolean ? "true" : "false");
+        fprintf(fp, j.boolean ? "true" : "false");
         break;
     case JT_NULL:
         fprintf(fp, "null");
         break;
     case JT_INT:
-        fprintf(fp, "%ld", j.tok.u64);
+        fprintf(fp, "%ld", j.u64);
         break;
     case JT_UINT:
-        fprintf(fp, "%lu", j.tok.u64);
+        fprintf(fp, "%lu", j.u64);
         break;
     case JT_FLOAT:
-        fprintf(fp, "%lf", j.tok.f64);
+        fprintf(fp, "%lf", j.f);
         break;
     case JT_ARRAY: {
         size_t length = jsonext_arr_length(&j);
@@ -429,8 +429,8 @@ void json_clean(union json_t *j) {
     case JT_BOOL:
     case JT_NULL:
     case JT_FLOAT: {
-        free(j->tok.text);
-        j->tok.text = NULL;
+        free(j->text);
+        j->text = NULL;
         break;
     }
     case JT_INT:
@@ -509,7 +509,7 @@ void __json_merge(union json_t *j, union json_t from) {
         return;
     struct json_pair_t *it = jsonext_obj_iter_first(&from);
     for (size_t i = 0; i < jsonext_obj_length(&from); i++) {
-        json_set_value(j, it->key, it->value);
+        json_set_obj_value(j, it->key, it->value);
         it = jsonext_obj_iter_next(&from, it);
     }
 }
@@ -541,7 +541,7 @@ void __json_delete_from_obj(union json_t *j, const char *key) {
     json_clean(&rm);
 }
 
-bool __json_set(union json_t *j, const char *key, size_t key_len, union json_t value, bool copy_value) {
+bool __json_set_obj(union json_t *j, const char *key, size_t key_len, union json_t value, bool copy_value) {
     if (!j || j->type != JT_OBJECT)
         return false;
 
@@ -568,54 +568,58 @@ bool __json_set(union json_t *j, const char *key, size_t key_len, union json_t v
 
     return true;
 }
-bool json_set_str(union json_t *j, const char *key, const char *value) {
-    return __json_set(j, key, strlen(key), JSON_STRING((char *)value), true);
+bool json_set_obj_str(union json_t *j, const char *key, const char *value) {
+    return __json_set_obj(j, key, strlen(key), JSON_STRING((char *)value), true);
 }
-bool json_set_bool(union json_t *j, const char *key, bool value) {
-    return __json_set(j, key, strlen(key), JSON_BOOL(value), false);
+bool json_set_obj_bool(union json_t *j, const char *key, bool value) {
+    return __json_set_obj(j, key, strlen(key), JSON_BOOL(value), false);
 }
-bool json_set_null(union json_t *j, const char *key, void *value) {
+bool json_set_obj_null(union json_t *j, const char *key, void *value) {
     UNUSED(value);
-    return __json_set(j, key, strlen(key), JSON_NULL, false);
+    return __json_set_obj(j, key, strlen(key), JSON_NULL, false);
 }
-bool json_set_i8(union json_t *j, const char *key, int8_t value) {
-    return __json_set(j, key, strlen(key), JSON_INT(value), false);
+bool json_set_obj_i8(union json_t *j, const char *key, int8_t value) {
+    return __json_set_obj(j, key, strlen(key), JSON_INT(value), false);
 }
-bool json_set_i16(union json_t *j, const char *key, int16_t value) {
-    return __json_set(j, key, strlen(key), JSON_INT(value), false);
+bool json_set_obj_i16(union json_t *j, const char *key, int16_t value) {
+    return __json_set_obj(j, key, strlen(key), JSON_INT(value), false);
 }
-bool json_set_i32(union json_t *j, const char *key, int32_t value) {
-    return __json_set(j, key, strlen(key), JSON_INT(value), false);
+bool json_set_obj_i32(union json_t *j, const char *key, int32_t value) {
+    return __json_set_obj(j, key, strlen(key), JSON_INT(value), false);
 }
-bool json_set_i64(union json_t *j, const char *key, int64_t value) {
-    return __json_set(j, key, strlen(key), JSON_INT(value), false);
+bool json_set_obj_i64(union json_t *j, const char *key, int64_t value) {
+    return __json_set_obj(j, key, strlen(key), JSON_INT(value), false);
 }
-bool json_set_u8(union json_t *j, const char *key, uint8_t value) {
-    return __json_set(j, key, strlen(key), JSON_UINT(value), false);
+bool json_set_obj_u8(union json_t *j, const char *key, uint8_t value) {
+    return __json_set_obj(j, key, strlen(key), JSON_UINT(value), false);
 }
-bool json_set_u16(union json_t *j, const char *key, uint16_t value) {
-    return __json_set(j, key, strlen(key), JSON_UINT(value), false);
+bool json_set_obj_u16(union json_t *j, const char *key, uint16_t value) {
+    return __json_set_obj(j, key, strlen(key), JSON_UINT(value), false);
 }
-bool json_set_u32(union json_t *j, const char *key, uint32_t value) {
-    return __json_set(j, key, strlen(key), JSON_UINT(value), false);
+bool json_set_obj_u32(union json_t *j, const char *key, uint32_t value) {
+    return __json_set_obj(j, key, strlen(key), JSON_UINT(value), false);
 }
-bool json_set_u64(union json_t *j, const char *key, uint64_t value) {
-    return __json_set(j, key, strlen(key), JSON_UINT(value), false);
+bool json_set_obj_u64(union json_t *j, const char *key, uint64_t value) {
+    return __json_set_obj(j, key, strlen(key), JSON_UINT(value), false);
 }
-bool json_set_f32(union json_t *j, const char *key, float value) {
-    return __json_set(j, key, strlen(key), JSON_FLOAT(value), false);
+bool json_set_obj_f32(union json_t *j, const char *key, float value) {
+    return __json_set_obj(j, key, strlen(key), JSON_FLOAT(value), false);
 }
-bool json_set_f64(union json_t *j, const char *key, double value) {
-    return __json_set(j, key, strlen(key), JSON_FLOAT(value), false);
+bool json_set_obj_f64(union json_t *j, const char *key, double value) {
+    return __json_set_obj(j, key, strlen(key), JSON_FLOAT(value), false);
 }
-bool json_set_value(union json_t *j, const char *key, union json_t value) {
-    return __json_set(j, key, strlen(key), value, true);
+bool json_set_obj_value(union json_t *j, const char *key, union json_t value) {
+    return __json_set_obj(j, key, strlen(key), value, true);
 }
-bool json_set_value_p(union json_t *j, const char *key, union json_t *value) {
-    return __json_set(j, key, strlen(key), *value, false);
+bool json_set_obj_value_p(union json_t *j, const char *key, union json_t *value) {
+    bool res = __json_set_obj(j, key, strlen(key), *value, false);
+    *value = JSON_TYPE(value->type);
+    return res;
 }
-bool json_set_value_np(union json_t *j, const char *key, size_t key_len, union json_t *value) {
-    return __json_set(j, key, key_len, *value, false);
+bool json_set_obj_value_np(union json_t *j, const char *key, size_t key_len, union json_t *value) {
+    bool res = __json_set_obj(j, key, key_len, *value, false);
+    *value = JSON_TYPE(value->type);
+    return res;
 }
 
 // --------------------------------------------------
@@ -681,6 +685,83 @@ void __json_delete_from_arr(union json_t *j, long int i) {
     json_clean(&rm);
 }
 
+bool __json_set_arr(union json_t *j, long int i, union json_t value, bool copy_value) {
+    if (!j || j->type != JT_ARRAY)
+        return false;
+
+    size_t length = jsonext_arr_length(j);
+
+    size_t index = (i < 0) ? length + i : (size_t)i;
+    if (index >= length) {
+        printf("%s:%d Array Out of Range: Index=%ld Length=%ld\n", __func__, __LINE__, i, length);
+        return false;   
+    }
+
+    if (value.type == JT_MISSING) {
+        __json_delete_from_arr(j, index);
+        return true;
+    }
+
+    union json_t *exist_value = __json_getp_from_arr(*j, index);
+    if (exist_value) {
+        json_clean(exist_value);
+        *exist_value = copy_value ? json_dup(value) : value;
+        return true;
+    }
+
+    printf("[Bug] %s:%d Array Element Not Exist: Index=%ld Length=%ld\n", __func__, __LINE__, i, length);
+    return false;
+}
+
+bool json_set_arr_str(union json_t *j, long int i, const char *value) {
+    return __json_set_arr(j, i, JSON_STRING((char *)value), true);
+}
+bool json_set_arr_bool(union json_t *j, long int i, bool value) {
+    return __json_set_arr(j, i, JSON_BOOL(value), false);
+}
+bool json_set_arr_null(union json_t *j, long int i, void *value) {
+    UNUSED(value);
+    return __json_set_arr(j, i, JSON_NULL, false);
+}
+bool json_set_arr_i8(union json_t *j, long int i, int8_t value) {
+    return __json_set_arr(j, i, JSON_INT(value), false);
+}
+bool json_set_arr_i16(union json_t *j, long int i, int16_t value) {
+    return __json_set_arr(j, i, JSON_INT(value), false);
+}
+bool json_set_arr_i32(union json_t *j, long int i, int32_t value) {
+    return __json_set_arr(j, i, JSON_INT(value), false);
+}
+bool json_set_arr_i64(union json_t *j, long int i, int64_t value) {
+    return __json_set_arr(j, i, JSON_INT(value), false);
+}
+bool json_set_arr_u8(union json_t *j, long int i, uint8_t value) {
+    return __json_set_arr(j, i, JSON_UINT(value), false);
+}
+bool json_set_arr_u16(union json_t *j, long int i, uint16_t value) {
+    return __json_set_arr(j, i, JSON_UINT(value), false);
+}
+bool json_set_arr_u32(union json_t *j, long int i, uint32_t value) {
+    return __json_set_arr(j, i, JSON_UINT(value), false);
+}
+bool json_set_arr_u64(union json_t *j, long int i, uint64_t value) {
+    return __json_set_arr(j, i, JSON_UINT(value), false);
+}
+bool json_set_arr_f32(union json_t *j, long int i, float value) {
+    return __json_set_arr(j, i, JSON_FLOAT(value), false);
+}
+bool json_set_arr_f64(union json_t *j, long int i, double value) {
+    return __json_set_arr(j, i, JSON_FLOAT(value), false);
+}
+bool json_set_arr_value(union json_t *j, long int i, union json_t value) {
+    return __json_set_arr(j, i, value, true);
+}
+bool json_set_arr_value_p(union json_t *j, long int i, union json_t *value) {
+    bool res = __json_set_arr(j, i, *value, false);
+    *value = JSON_TYPE(value->type);
+    return res;
+}
+
 bool __json_append(union json_t *j, union json_t value, bool copy_value) {
     if (!j || j->type != JT_ARRAY || value.type == JT_MISSING)
         return false;
@@ -709,7 +790,11 @@ bool json_append_u64(union json_t *j, uint64_t value) { return __json_append(j, 
 bool json_append_f32(union json_t *j, float value) { return __json_append(j, JSON_FLOAT(value), false); }
 bool json_append_f64(union json_t *j, double value) { return __json_append(j, JSON_FLOAT(value), false); }
 bool json_append_value(union json_t *j, union json_t value) { return __json_append(j, value, true); }
-bool json_append_value_p(union json_t *j, union json_t *value) { return __json_append(j, *value, false); }
+bool json_append_value_p(union json_t *j, union json_t *value) {
+    bool res = __json_append(j, *value, false);
+    *value = JSON_TYPE(value->type);
+    return res;
+}
 
 // --------------------------------------------------
 // !SECTION: END JSON ARRAY FUNCTION
@@ -1321,7 +1406,7 @@ static union json_t object_rule(struct json_parser_context_t *ctx) {
 
         /* Value */
         value = value_rule(ctx);
-        json_set_value_np(&jobj, key, key_len, &value);
+        json_set_obj_value_np(&jobj, key, key_len, &value);
 
         if (lookahead_token(ctx, JLT_COMMA)) {
             match_token(ctx, JLT_COMMA);
