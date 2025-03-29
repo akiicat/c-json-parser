@@ -279,3 +279,289 @@ TEST(JsonCommonTest, DumpToFile) {
     json_clean(&j);
     fclose(tempOutput);
 }
+
+TEST(JsonCommonTest, JsonUpdate) {
+    /* Arrange */
+    union json_t j1 = JSON_OBJECT;
+    json_set(&j1, "A", JSON_INT(1));
+    json_set(&j1, "B", JSON_STRING("2"));
+
+    union json_t j2 = JSON_OBJECT;
+    json_set(&j2, "A", "3");
+    json_set(&j2, "C", 4);
+
+    /* Act */
+    json_update(&j1, j2);
+
+    /* Assert */
+    EXPECT_EQ(JT_OBJECT, j1.type);
+    EXPECT_EQ(2, json_length(j1));
+    EXPECT_EQ(JT_STRING, json_get(j1, "A").type);
+    EXPECT_STREQ("3", json_get(j1, "A").text);
+    EXPECT_EQ(JT_INT, json_get(j1, "C").type);
+    EXPECT_EQ(4, json_get(j1, "C").i64);
+    EXPECT_EQ(NULL, json_getp(j1, "B"));
+
+    /* Clean */
+    json_clean(&j1);
+    json_clean(&j2);
+}
+
+TEST(JsonCommonTest, JsonUpdateNull) {
+    /* Arrange */
+    union json_t j1 = JSON_OBJECT;
+    json_set(&j1, "A", JSON_INT(1));
+    json_set(&j1, "B", JSON_STRING("2"));
+
+    /* Act */
+    json_update_null(&j1, nullptr);
+
+    /* Assert */
+    EXPECT_EQ(JT_NULL, j1.type);
+
+    /* Clean */
+    json_clean(&j1);
+}
+
+TEST(JsonCommonTest, JsonUpdateBool) {
+    /* Arrange */
+    union json_t j1 = JSON_OBJECT;
+    json_set(&j1, "A", JSON_INT(1));
+    json_set(&j1, "B", JSON_STRING("2"));
+
+    /* Act */
+    json_update_bool(&j1, true);
+
+    /* Assert */
+    EXPECT_EQ(JT_BOOL, j1.type);
+    EXPECT_TRUE(j1.boolean);
+
+    /* Clean */
+    json_clean(&j1);
+}
+
+TEST(JsonCommonTest, JsonUpdateI8) {
+    /* Arrange */
+    union json_t j1 = JSON_OBJECT;
+    json_set(&j1, "A", JSON_INT(1));
+    json_set(&j1, "B", JSON_STRING("2"));
+
+    /* Act */
+    json_update_i8(&j1, 2);
+
+    /* Assert */
+    EXPECT_EQ(JT_INT, j1.type);
+    EXPECT_EQ(2, j1.i64);
+
+    /* Clean */
+    json_clean(&j1);
+}
+
+TEST(JsonCommonTest, JsonUpdateI16) {
+    /* Arrange */
+    union json_t j1 = JSON_OBJECT;
+    json_set(&j1, "A", JSON_INT(1));
+    json_set(&j1, "B", JSON_STRING("2"));
+
+    /* Act */
+    json_update_i16(&j1, 2);
+
+    /* Assert */
+    EXPECT_EQ(JT_INT, j1.type);
+    EXPECT_EQ(2, j1.i64);
+
+    /* Clean */
+    json_clean(&j1);
+}
+
+TEST(JsonCommonTest, JsonUpdateI32) {
+    /* Arrange */
+    union json_t j1 = JSON_OBJECT;
+    json_set(&j1, "A", JSON_INT(1));
+    json_set(&j1, "B", JSON_STRING("2"));
+
+    /* Act */
+    json_update_i32(&j1, 2);
+
+    /* Assert */
+    EXPECT_EQ(JT_INT, j1.type);
+    EXPECT_EQ(2, j1.i64);
+
+    /* Clean */
+    json_clean(&j1);
+}
+
+TEST(JsonCommonTest, JsonUpdateI64) {
+    /* Arrange */
+    union json_t j1 = JSON_OBJECT;
+    json_set(&j1, "A", JSON_INT(1));
+    json_set(&j1, "B", JSON_STRING("2"));
+
+    /* Act */
+    json_update_i64(&j1, 2);
+
+    /* Assert */
+    EXPECT_EQ(JT_INT, j1.type);
+    EXPECT_EQ(2, j1.i64);
+
+    /* Clean */
+    json_clean(&j1);
+}
+
+TEST(JsonCommonTest, JsonUpdateU8) {
+    /* Arrange */
+    union json_t j1 = JSON_OBJECT;
+    json_set(&j1, "A", JSON_INT(1));
+    json_set(&j1, "B", JSON_STRING("2"));
+
+    /* Act */
+    json_update_u8(&j1, 2);
+
+    /* Assert */
+    EXPECT_EQ(JT_UINT, j1.type);
+    EXPECT_EQ(2, j1.u64);
+
+    /* Clean */
+    json_clean(&j1);
+}
+
+TEST(JsonCommonTest, JsonUpdateU16) {
+    /* Arrange */
+    union json_t j1 = JSON_OBJECT;
+    json_set(&j1, "A", JSON_INT(1));
+    json_set(&j1, "B", JSON_STRING("2"));
+
+    /* Act */
+    json_update_u16(&j1, 2);
+
+    /* Assert */
+    EXPECT_EQ(JT_UINT, j1.type);
+    EXPECT_EQ(2, j1.u64);
+
+    /* Clean */
+    json_clean(&j1);
+}
+
+TEST(JsonCommonTest, JsonUpdateU32) {
+    /* Arrange */
+    union json_t j1 = JSON_OBJECT;
+    json_set(&j1, "A", JSON_INT(1));
+    json_set(&j1, "B", JSON_STRING("2"));
+
+    /* Act */
+    json_update_u32(&j1, 2);
+
+    /* Assert */
+    EXPECT_EQ(JT_UINT, j1.type);
+    EXPECT_EQ(2, j1.u64);
+
+    /* Clean */
+    json_clean(&j1);
+}
+
+TEST(JsonCommonTest, JsonUpdateU64) {
+    /* Arrange */
+    union json_t j1 = JSON_OBJECT;
+    json_set(&j1, "A", JSON_INT(1));
+    json_set(&j1, "B", JSON_STRING("2"));
+
+    /* Act */
+    json_update_u64(&j1, 2);
+
+    /* Assert */
+    EXPECT_EQ(JT_UINT, j1.type);
+    EXPECT_EQ(2, j1.u64);
+
+    /* Clean */
+    json_clean(&j1);
+}
+
+TEST(JsonCommonTest, JsonUpdateF32) {
+    /* Arrange */
+    union json_t j1 = JSON_OBJECT;
+    json_set(&j1, "A", JSON_INT(1));
+    json_set(&j1, "B", JSON_STRING("2"));
+
+    /* Act */
+    json_update_f32(&j1, 3.14);
+
+    /* Assert */
+    EXPECT_EQ(JT_FLOAT, j1.type);
+    EXPECT_FLOAT_EQ(3.14, j1.f);
+
+    /* Clean */
+    json_clean(&j1);
+}
+
+TEST(JsonCommonTest, JsonUpdateF64) {
+    /* Arrange */
+    union json_t j1 = JSON_OBJECT;
+    json_set(&j1, "A", JSON_INT(1));
+    json_set(&j1, "B", JSON_STRING("2"));
+
+    /* Act */
+    json_update_f64(&j1, 3.14);
+
+    /* Assert */
+    EXPECT_EQ(JT_FLOAT, j1.type);
+    EXPECT_DOUBLE_EQ(3.14, j1.f);
+
+    /* Clean */
+    json_clean(&j1);
+}
+
+TEST(JsonCommonTest, JsonUpdateValue) {
+    /* Arrange */
+    union json_t j1 = JSON_OBJECT;
+    json_set(&j1, "A", JSON_INT(1));
+    json_set(&j1, "B", JSON_STRING("2"));
+
+    union json_t j2 = JSON_OBJECT;
+    json_set(&j2, "A", "3");
+    json_set(&j2, "C", 4);
+
+    /* Act */
+    json_update_value(&j1, j2);
+
+    /* Assert */
+    EXPECT_EQ(JT_OBJECT, j1.type);
+    EXPECT_EQ(2, json_length(j1));
+    EXPECT_EQ(JT_STRING, json_get(j1, "A").type);
+    EXPECT_STREQ("3", json_get(j1, "A").text);
+    EXPECT_EQ(JT_INT, json_get(j1, "C").type);
+    EXPECT_EQ(4, json_get(j1, "C").i64);
+    EXPECT_EQ(NULL, json_getp(j1, "B"));
+
+    /* Clean */
+    json_clean(&j1);
+    json_clean(&j2);
+}
+
+TEST(JsonCommonTest, JsonUpdateValueP) {
+    /* Arrange */
+    union json_t j1 = JSON_OBJECT;
+    json_set(&j1, "A", JSON_INT(1));
+    json_set(&j1, "B", JSON_STRING("2"));
+
+    union json_t j2 = JSON_OBJECT;
+    json_set(&j2, "A", "3");
+    json_set(&j2, "C", 4);
+
+    /* Act */
+    json_update_value_p(&j1, &j2);
+
+    /* Assert */
+    EXPECT_EQ(JT_OBJECT, j1.type);
+    EXPECT_EQ(2, json_length(j1));
+    EXPECT_EQ(JT_STRING, json_get(j1, "A").type);
+    EXPECT_STREQ("3", json_get(j1, "A").text);
+    EXPECT_EQ(JT_INT, json_get(j1, "C").type);
+    EXPECT_EQ(4, json_get(j1, "C").i64);
+    EXPECT_EQ(NULL, json_getp(j1, "B"));
+    EXPECT_EQ(JT_OBJECT, j2.type);
+    EXPECT_EQ(0, json_length(j2));
+
+    /* Clean */
+    json_clean(&j1);
+    json_clean(&j2);
+}

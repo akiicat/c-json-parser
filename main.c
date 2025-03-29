@@ -116,6 +116,10 @@ void obj_test() {
         (json_getp(obj3, "Test2") ? json_get(obj3, "Test2").tok.text : ""));
 
     json_print(obj3);
+
+    json_update(&obj3, "Test1XXXXXXXXXXXX");
+    json_print(obj3);
+
     json_clean(&obj3);
 
     // json_print(obj);

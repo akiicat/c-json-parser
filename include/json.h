@@ -277,8 +277,8 @@ bool json_append_value_p(union json_t *j, union json_t *value);
 
 #ifndef __cplusplus
 #define json_concat(j, from) _Generic((from), \
-            union json_t: __json_concat, \
-            union json_t *: __json_concat_p, \
+            json_t: __json_concat, \
+            json_t *: __json_concat_p, \
             default: __json_concat)((j), (from))
 
 #define json_append(j, value)                                                                                          \
@@ -327,6 +327,22 @@ bool json_append_value_p(union json_t *j, union json_t *value);
 
 union json_t json_dup(union json_t j);
 
+bool json_update_str(union json_t *j, const char *value);
+bool json_update_bool(union json_t *j, bool value);
+bool json_update_null(union json_t *j, void *value);
+bool json_update_i8(union json_t *j, int8_t value);
+bool json_update_i16(union json_t *j, int16_t value);
+bool json_update_i32(union json_t *j, int32_t value);
+bool json_update_i64(union json_t *j, int64_t value);
+bool json_update_u8(union json_t *j, uint8_t value);
+bool json_update_u16(union json_t *j, uint16_t value);
+bool json_update_u32(union json_t *j, uint32_t value);
+bool json_update_u64(union json_t *j, uint64_t value);
+bool json_update_f32(union json_t *j, float value);
+bool json_update_f64(union json_t *j, double value);
+bool json_update_value(union json_t *j, union json_t value);
+bool json_update_value_p(union json_t *j, union json_t *value);
+
 #ifndef __cplusplus
 #define json_set(j, key, value)                                                                                        \
     _Generic((key),                  \
@@ -348,6 +364,24 @@ union json_t json_dup(union json_t j);
 #define json_getp(j, key)                                                                                               \
     _Generic((key), const char *: __json_getp_from_obj, char *: __json_getp_from_obj, default: __json_getp_from_arr)(     \
         (j), (key))
+#define json_update(j, value) _Generic((value),                                                                                                  \
+            const char *: json_update_str,                                                                                    \
+            char *: json_update_str,                                                                                          \
+            bool: json_update_bool,                                                                                           \
+            void *: json_update_null,                                                                                         \
+            int8_t: json_update_i8,                                                                                           \
+            int16_t: json_update_i16,                                                                                         \
+            int32_t: json_update_i32,                                                                                         \
+            int64_t: json_update_i64,                                                                                         \
+            uint8_t: json_update_u8,                                                                                          \
+            uint16_t: json_update_u16,                                                                                        \
+            uint32_t: json_update_u32,                                                                                        \
+            uint64_t: json_update_u64,                                                                                        \
+            float: json_update_f32,                                                                                           \
+            double: json_update_f64,                                                                                          \
+            json_t: json_update_value,                                                                                        \
+            json_t *: json_update_value_p,                                                                                    \
+            default: json_update_value)((j), (value))
 #define json_remove(j, key)                                                                                            \
     _Generic((key),                                                                                                    \
         const char *: __json_remove_from_obj,                                                                          \
@@ -380,8 +414,6 @@ char *__json_dumps(union json_t j, struct json_config config);
 void __json_dump(union json_t j, FILE *f, struct json_config config);
 void __json_pprint(union json_t j, struct json_config config);
 void json_print(union json_t j);
-
-// TODO json assign or json update, update non initial value
 
 // --------------------------------------------------
 //                    JSON Lexer

@@ -146,8 +146,7 @@ size_t json_capacity(union json_t j) {
 // union json_t, jsonext_arr_length(), jsonext_arr_get(), jsonext_obj_length(),
 // jsonext_obj_iter_first(), jsonext_obj_iter_next(), json_type2str(),
 // print_trace(). Also assume the json_t union has a field 'type' and a member
-// 'tok' with subfields appropriate to each JSON type (e.g., text, boolean, u64,
-// f32, f64).
+// 'tok' with subfields appropriate to each JSON type (e.g., text, boolean, u64, f).
 
 // A simple string builder structure.
 struct sb {
@@ -464,6 +463,69 @@ void json_clean(union json_t *j) {
         fprintf(stderr, "%s: unsupport token <%d|%s>", __func__, j->type, json_type2str(j->type));
         break;
     }
+}
+
+bool __json_update(union json_t *j, union json_t value, bool copy_value) {
+    if (!j)
+        return false;
+
+    json_clean(j);
+
+    if (value.type == JT_MISSING) {
+        return true;
+    }
+
+    *j = copy_value ? json_dup(value) : value;
+
+    return true;
+}
+bool json_update_str(union json_t *j, const char *value) {
+    return __json_update(j, JSON_STRING((char *)value), true);
+}
+bool json_update_bool(union json_t *j, bool value) {
+    return __json_update(j, JSON_BOOL(value), false);
+}
+bool json_update_null(union json_t *j, void *value) {
+    UNUSED(value);
+    return __json_update(j, JSON_NULL, false);
+}
+bool json_update_i8(union json_t *j, int8_t value) {
+    return __json_update(j, JSON_INT(value), false);
+}
+bool json_update_i16(union json_t *j, int16_t value) {
+    return __json_update(j, JSON_INT(value), false);
+}
+bool json_update_i32(union json_t *j, int32_t value) {
+    return __json_update(j, JSON_INT(value), false);
+}
+bool json_update_i64(union json_t *j, int64_t value) {
+    return __json_update(j, JSON_INT(value), false);
+}
+bool json_update_u8(union json_t *j, uint8_t value) {
+    return __json_update(j, JSON_UINT(value), false);
+}
+bool json_update_u16(union json_t *j, uint16_t value) {
+    return __json_update(j, JSON_UINT(value), false);
+}
+bool json_update_u32(union json_t *j, uint32_t value) {
+    return __json_update(j, JSON_UINT(value), false);
+}
+bool json_update_u64(union json_t *j, uint64_t value) {
+    return __json_update(j, JSON_UINT(value), false);
+}
+bool json_update_f32(union json_t *j, float value) {
+    return __json_update(j, JSON_FLOAT(value), false);
+}
+bool json_update_f64(union json_t *j, double value) {
+    return __json_update(j, JSON_FLOAT(value), false);
+}
+bool json_update_value(union json_t *j, union json_t value) {
+    return __json_update(j, value, true);
+}
+bool json_update_value_p(union json_t *j, union json_t *value) {
+    bool res = __json_update(j, *value, false);
+    *value = JSON_TYPE(value->type);
+    return res;
 }
 
 // --------------------------------------------------

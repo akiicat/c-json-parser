@@ -202,8 +202,6 @@ Retrieve values using the `json_get()` function; it is read-only. If you want to
 
 Note: Always use `json_update()` with the return value of `json_getp()` to update the data safely. Alternatively, you can use `json_set()` to perform the update.
 
-**`json_update()` is currently being implemented**
-
 ```c
 union json_t json_get(union json_t j, const char *key);
 union json_t json_get(union json_t j, long int i);

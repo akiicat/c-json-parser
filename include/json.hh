@@ -21,26 +21,15 @@ constexpr union json_t JSON_OBJECT = {.type = JT_OBJECT};
 constexpr union json_t JSON_NULL = {.type = JT_NULL};
 constexpr union json_t JSON_TRUE = {.tok = {.type = JT_BOOL, .text = nullptr, .boolean = true}};
 constexpr union json_t JSON_FALSE = {.tok = {.type = JT_BOOL, .text = nullptr, .boolean = false}};
-constexpr union json_t JSON_TYPE(enum json_token_type_t x) {
-    return {.tok = {.type = x, .text = nullptr}};
-} constexpr union json_t JSON_STRING(const char *x) {
-    return {.tok = {.type = JT_STRING, .text = const_cast<char *>(x)}};
-} constexpr union json_t JSON_NUMBER(const char *x) {
-    return {.tok = {.type = JT_NUMBER, .text = const_cast<char *>(x)}};
-} constexpr union json_t JSON_BOOL(bool x) {
-    return {.tok = {.type = JT_BOOL, .text = nullptr, .boolean = (x)}};
-} constexpr union json_t JSON_INT(int64_t x) {
-    return {.tok = {.type = JT_INT, .text = nullptr, .i64 = (int64_t)(x)}};
-} constexpr union json_t JSON_UINT(uint64_t x) {
-    return {.tok = {.type = JT_UINT, .text = nullptr, .u64 = (uint64_t)(x)}};
-} constexpr union json_t JSON_FLOAT(double x) {
-    return {.tok = {.type = JT_FLOAT, .text = nullptr, .f = (double)(x)}};
-}
+constexpr union json_t JSON_TYPE(enum json_token_type_t x) { return {.tok = {.type = x, .text = nullptr}}; }
+constexpr union json_t JSON_STRING(const char *x) { return {.tok = {.type = JT_STRING, .text = const_cast<char *>(x)}}; }
+constexpr union json_t JSON_NUMBER(const char *x) { return {.tok = {.type = JT_NUMBER, .text = const_cast<char *>(x)}}; }
+constexpr union json_t JSON_BOOL(bool x) { return {.tok = {.type = JT_BOOL, .text = nullptr, .boolean = (x)}}; }
+constexpr union json_t JSON_INT(int64_t x) { return {.tok = {.type = JT_INT, .text = nullptr, .i64 = (int64_t)(x)}}; }
+constexpr union json_t JSON_UINT(uint64_t x) { return {.tok = {.type = JT_UINT, .text = nullptr, .u64 = (uint64_t)(x)}}; }
+constexpr union json_t JSON_FLOAT(double x) { return {.tok = {.type = JT_FLOAT, .text = nullptr, .f = (double)(x)}}; }
 
-constexpr bool
-json_set(union json_t *j, const char *key, const char *value) {
-    return json_set_obj_str(j, key, value);
-}
+constexpr bool json_set(union json_t *j, const char *key, const char *value) { return json_set_obj_str(j, key, value); }
 constexpr bool json_set(union json_t *j, const char *key, char *value) { return json_set_obj_str(j, key, value); }
 constexpr bool json_set(union json_t *j, const char *key, bool value) { return json_set_obj_bool(j, key, value); }
 constexpr bool json_set(union json_t *j, const char *key, void *value) { return json_set_obj_null(j, key, value); }
@@ -49,23 +38,13 @@ constexpr bool json_set(union json_t *j, const char *key, int16_t value) { retur
 constexpr bool json_set(union json_t *j, const char *key, int32_t value) { return json_set_obj_i32(j, key, value); }
 constexpr bool json_set(union json_t *j, const char *key, int64_t value) { return json_set_obj_i64(j, key, value); }
 constexpr bool json_set(union json_t *j, const char *key, uint8_t value) { return json_set_obj_u8(j, key, value); }
-constexpr bool json_set(union json_t *j, const char *key, uint16_t value) {
-    return json_set_obj_u16(j, key, value);
-}
-constexpr bool json_set(union json_t *j, const char *key, uint32_t value) {
-    return json_set_obj_u32(j, key, value);
-}
-constexpr bool json_set(union json_t *j, const char *key, uint64_t value) {
-    return json_set_obj_u64(j, key, value);
-}
+constexpr bool json_set(union json_t *j, const char *key, uint16_t value) { return json_set_obj_u16(j, key, value); }
+constexpr bool json_set(union json_t *j, const char *key, uint32_t value) { return json_set_obj_u32(j, key, value); }
+constexpr bool json_set(union json_t *j, const char *key, uint64_t value) { return json_set_obj_u64(j, key, value); }
 constexpr bool json_set(union json_t *j, const char *key, float value) { return json_set_obj_f32(j, key, value); }
 constexpr bool json_set(union json_t *j, const char *key, double value) { return json_set_obj_f64(j, key, value); }
-constexpr bool json_set(union json_t *j, const char *key, union json_t value) {
-    return json_set_obj_value(j, key, value);
-}
-constexpr bool json_set(union json_t *j, const char *key, union json_t *value) {
-    return json_set_obj_value_p(j, key, value);
-}
+constexpr bool json_set(union json_t *j, const char *key, union json_t value) { return json_set_obj_value(j, key, value); }
+constexpr bool json_set(union json_t *j, const char *key, union json_t *value) { return json_set_obj_value_p(j, key, value); }
 
 // Overload for const char* values
 template <typename Index, typename = std::enable_if_t<std::is_integral_v<Index>>>
@@ -173,6 +152,23 @@ constexpr bool json_append(union json_t *j, float value) { return json_append_f3
 constexpr bool json_append(union json_t *j, double value) { return json_append_f64(j, value); }
 constexpr bool json_append(union json_t *j, union json_t value) { return json_append_value(j, value); }
 constexpr bool json_append(union json_t *j, union json_t *value) { return json_append_value_p(j, value); }
+
+constexpr bool json_update(union json_t *j, const char *value) { return json_update_str(j, value); }
+constexpr bool json_update(union json_t *j, char *value) { return json_update_str(j, value); }
+constexpr bool json_update(union json_t *j, bool value) { return json_update_bool(j, value); }
+constexpr bool json_update(union json_t *j, void *value) { return json_update_null(j, value); }
+constexpr bool json_update(union json_t *j, int8_t value) { return json_update_i8(j, value); }
+constexpr bool json_update(union json_t *j, int16_t value) { return json_update_i16(j, value); }
+constexpr bool json_update(union json_t *j, int32_t value) { return json_update_i32(j, value); }
+constexpr bool json_update(union json_t *j, int64_t value) { return json_update_i64(j, value); }
+constexpr bool json_update(union json_t *j, uint8_t value) { return json_update_u8(j, value); }
+constexpr bool json_update(union json_t *j, uint16_t value) { return json_update_u16(j, value); }
+constexpr bool json_update(union json_t *j, uint32_t value) { return json_update_u32(j, value); }
+constexpr bool json_update(union json_t *j, uint64_t value) { return json_update_u64(j, value); }
+constexpr bool json_update(union json_t *j, float value) { return json_update_f32(j, value); }
+constexpr bool json_update(union json_t *j, double value) { return json_update_f64(j, value); }
+constexpr bool json_update(union json_t *j, union json_t value) { return json_update_value(j, value); }
+constexpr bool json_update(union json_t *j, union json_t *value) { return json_update_value_p(j, value); }
 
 constexpr union json_t json_get(union json_t j, const char *key) { return __json_get_from_obj(j, key); }
 constexpr union json_t json_get(union json_t j, int i) { return __json_get_from_arr(j, i); }
