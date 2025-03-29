@@ -10,7 +10,5 @@ pip3 install meson
 
 meson wrap install gtest
 
-# meson wrap install unity
-# gem install ceedling
 # Coverage
 # pip install gcovr
