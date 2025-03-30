@@ -93,7 +93,7 @@ union json_t *my_array_delete(struct my_array *m, size_t i) {
     }
 
     if (m->capacity / 2 >= ARRAY_MIN_SIZE && m->length <= m->capacity / 4) {
-        printf("%s:%d length=%ld capacity=%ld\n", __FUNCTION__, __LINE__, m->length, m->capacity);
+        JSON_LOG_DEBUG("Shrink Array: length=%ld capacity=%ld new_capacity=%ld", m->length, m->capacity, m->capacity / 2);
         my_array_expand(m, m->capacity / 2);
     }
 

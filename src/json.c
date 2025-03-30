@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include "json.h"
 
@@ -12,18 +13,51 @@
 
 #define UNUSED(x) ((void)(x))
 
+// Current log level threshold
+enum json_log_level JSON_CURRENT_LOG_LEVEL = JSON_LOG_LEVEL_DEBUG;
+
+static const char* get_level_str(enum json_log_level level) {
+    switch (level) {
+        case JSON_LOG_LEVEL_DEBUG: return "DEBUG";
+        case JSON_LOG_LEVEL_INFO: return "INFO";
+        case JSON_LOG_LEVEL_WARNING: return "WARNING";
+        case JSON_LOG_LEVEL_ERROR: return "ERROR";
+        case JSON_LOG_LEVEL_FATAL: return "FATAL";
+        default: return "UNKNOWN";
+    }
+}
+
+void json_log_message(enum json_log_level level, const char *file, const char *func, int line, const char *fmt, ...) {
+    if (level < JSON_CURRENT_LOG_LEVEL) return;
+
+    time_t t;
+    time(&t);
+    struct tm* tm_info = localtime(&t);
+    char time_buf[26];
+    strftime(time_buf, 26, "%Y-%m-%d %H:%M:%S", tm_info);
+
+    va_list args;
+    va_start(args, fmt);
+
+    fprintf(stderr, "[%s] %s [%s:%s:%d]: ", time_buf, get_level_str(level), file, func, line);
+    vfprintf(stderr, fmt, args);
+    fprintf(stderr, "\n");
+
+    va_end(args);
+}
+
 void json_print_trace(void) {
     void *array[10];
     char **strings;
     int size, i;
 
-    size = backtrace(array, 10);
+    size = backtrace(array, 64);
     strings = backtrace_symbols(array, size);
     if (strings != NULL) {
 
-        printf("Obtained %d stack frames.\n", size);
+        JSON_LOG_ERROR("Obtained %d stack frames.\n", size);
         for (i = 0; i < size; i++)
-            printf("%s\n", strings[i]);
+            JSON_LOG_ERROR("%s\n", strings[i]);
     }
 
     free(strings);
@@ -111,14 +145,14 @@ union json_t json_dup(union json_t j) {
         }
 
         if (i != jsonext_obj_length(&j)) {
-            printf("%s:%d Bug Dup Sanity Check Fail type=%s key=%s\n", __func__, __LINE__, json_type2str(j.type),
+            JSON_LOG_WARNING("Json Duplicate Sanity Check Fail: type=%s key=%s\n", json_type2str(j.type),
                    it->key);
         }
 
         break;
     }
     default:
-        fprintf(stderr, "%s: unsupport token <%d|%s>", __func__, j.type, json_type2str(j.type));
+        JSON_LOG_ERROR("Unsupport Token <%d|%s>", j.type, json_type2str(j.type));
         json_print_trace();
         break;
     }
@@ -142,12 +176,6 @@ size_t json_capacity(union json_t j) {
     return 0;
 }
 
-// Assume these functions are defined elsewhere:
-// jsonext_arr_length(), jsonext_arr_get(), jsonext_obj_length(),
-// jsonext_obj_iter_first(), jsonext_obj_iter_next(), json_type2str(),
-// json_print_trace(). Also assume the json_t union has a field 'type' and a member
-// 'tok' with subfields appropriate to each JSON type (e.g., text, boolean, u64, f).
-
 // A simple string builder structure.
 struct sb {
     char *data;
@@ -160,7 +188,7 @@ static void sb_init(struct sb *sb) {
     sb->capacity = 128;
     sb->data = (char *)malloc(sb->capacity);
     if (!sb->data) {
-        fprintf(stderr, "Memory allocation error\n");
+        JSON_LOG_FATAL("Memory allocation error");
         exit(1);
     }
     sb->length = 0;
@@ -174,7 +202,7 @@ static void sb_ensure_capacity(struct sb *sb, size_t additional) {
         char *new_data = (char *)realloc(sb->data, sb->capacity);
         if (!new_data) {
             free(sb->data);
-            fprintf(stderr, "Memory allocation error\n");
+            JSON_LOG_FATAL("Memory allocation error");
             exit(1);
         }
         sb->data = new_data;
@@ -300,7 +328,7 @@ static void json_dumps_internal(union json_t j, int offset, int indent, struct s
         sb_append(sb, "MISSING\n");
         break;
     default:
-        fprintf(stderr, "Error: Print Token Not found <%d|%s>\n", j.type, json_type2str(j.type));
+        JSON_LOG_FATAL("Token Not found: <%d|%s>", j.type, json_type2str(j.type));
         json_print_trace();
         assert(0);
     }
@@ -402,7 +430,7 @@ static void json_print_internal(union json_t j, int offset, int indent, FILE *fp
         break;
     }
     default:
-        fprintf(stderr, "Error: Print Token Not found <%d|%s>\n", j.type, json_type2str(j.type));
+        JSON_LOG_FATAL("Print Token Not found: <%d|%s>", j.type, json_type2str(j.type));
         json_print_trace();
         assert(0);
     }
@@ -460,7 +488,7 @@ void json_clean(union json_t *j) {
         break;
     }
     default:
-        fprintf(stderr, "%s: unsupport token <%d|%s>", __func__, j->type, json_type2str(j->type));
+        JSON_LOG_WARNING("Unsupport Token: <%d|%s>", j->type, json_type2str(j->type));
         break;
     }
 }
@@ -615,7 +643,7 @@ bool __json_set_obj(union json_t *j, const char *key, size_t key_len, union json
     union json_t *exist_value = __json_getp_from_obj(*j, key);
 
     if (exist_value) {
-        printf("%s:%d Obj Key Exist key=%s\n", __func__, __LINE__, key);
+        JSON_LOG_INFO("Set Object Key Exist: key=%s", key);
         json_clean(exist_value);
         *exist_value = copy_value ? json_dup(value) : value;
         return true;
@@ -625,7 +653,7 @@ bool __json_set_obj(union json_t *j, const char *key, size_t key_len, union json
     new_pair->key = json_strndup(key, key_len);
     new_pair->value = copy_value ? json_dup(value) : value;
 
-    printf("%s:%d Obj insert key=%s\n", __func__, __LINE__, key);
+    JSON_LOG_INFO("Set Object: key=%s value=<%d|%s> ", key, value.type, json_type2str(value.type));
     jsonext_obj_insert(j, new_pair);
 
     return true;
@@ -755,8 +783,9 @@ bool __json_set_arr(union json_t *j, long int i, union json_t value, bool copy_v
 
     size_t index = (i < 0) ? length + i : (size_t)i;
     if (index >= length) {
-        printf("%s:%d Array Out of Range: Index=%ld Length=%ld\n", __func__, __LINE__, i, length);
-        return false;   
+        JSON_LOG_FATAL("Set Array Index Out of Bound: Index=%ld Length=%ld", i, length);
+        json_print_trace();
+        exit(EXIT_FAILURE);
     }
 
     if (value.type == JT_MISSING) {
@@ -771,7 +800,7 @@ bool __json_set_arr(union json_t *j, long int i, union json_t value, bool copy_v
         return true;
     }
 
-    printf("[Bug] %s:%d Array Element Not Exist: Index=%ld Length=%ld\n", __func__, __LINE__, i, length);
+    JSON_LOG_FATAL("[Bug] Array Element Not Exist: index=%ld length=%ld", i, length);
     return false;
 }
 
@@ -940,7 +969,7 @@ void json_delete_lexer(struct json_lexer_context_t *ctx) {
 */
 static int next_char(struct json_lexer_context_t *ctx) {
     if (!ctx->from_string) {
-        fprintf(stderr, "No streaming input\n");
+        JSON_LOG_ERROR("No input string provided");
         json_print_trace();
         assert(0);
     }
@@ -972,7 +1001,8 @@ static void match(struct json_lexer_context_t *ctx, int c) {
     next_char(ctx);
 
     if (cur != c) {
-        fprintf(stderr, "Syntax Error %lu:%lu: Unexpected Char: %c\n", ctx->row, ctx->column, cur);
+        JSON_LOG_ERROR("Syntax Error %lu:%lu: Expected Char: %c (%d) But currect char is %c (%d)", ctx->row, ctx->column,
+                       c, c, cur, cur);
         json_print_trace();
         assert(0);
     }
@@ -1013,7 +1043,7 @@ static void insert_token(struct json_lexer_context_t *ctx, struct json_lexer_tok
     size_t newSize = 0;
 
     if (!tokens) {
-        fprintf(stderr, "Error Token Container is not initialized\n");
+        JSON_LOG_ERROR("Error Token Container is not initialized\n");
         json_print_trace();
         assert(0);
     }
@@ -1374,13 +1404,13 @@ static void match_token(struct json_parser_context_t *ctx, enum json_lexer_token
     ctx->token_index++;
 
     if (index >= ctx->lexer->tokens.length) {
-        fprintf(stderr, "Invalid Token Index: %lu expect <%d|%s>\n", index, t, json_lexer_type2str(t));
+        JSON_LOG_ERROR("Invalid Token: index=%lu expect=<%d|%s>", index, t, json_lexer_type2str(t));
         json_print_trace();
         assert(0);
     }
 
     if (ctx->lexer->tokens.list[index].type != t) {
-        fprintf(stderr, "Syntax Error: Unexpected Token at Token Index %lu: <%d|%s> expect <%d|%s>\n", index,
+        JSON_LOG_ERROR("Syntax Error: Unexpected Token: index=%lu token=<%d|%s> expect=<%d|%s>", index,
                 ctx->lexer->tokens.list[index].type, json_lexer_type2str(ctx->lexer->tokens.list[index].type), t,
                 json_lexer_type2str(t));
         json_print_trace();
@@ -1436,7 +1466,7 @@ static union json_t value_rule(struct json_parser_context_t *ctx) {
         j = JSON_NULL;
     } else {
         token_p = current_token(ctx);
-        fprintf(stderr, "Syntax Error: Unexpected Token at Token Index %lu: <%d|%s>\n", ctx->token_index, token_p->type,
+        JSON_LOG_ERROR("Syntax Error: Unexpected Token: index=%lu token=<%d|%s>", ctx->token_index, token_p->type,
                 json_lexer_type2str(token_p->type));
         json_print_trace();
         assert(0);
@@ -1506,7 +1536,7 @@ void json_parse(struct json_parser_context_t *ctx) {
     ctx->root = value_rule(ctx);
 }
 
-union json_t json_string(const char *input_text) {
+union json_t json_deserialize(const char *input_text) {
     struct json_lexer_context_t *lexer = json_create_lexer(input_text);
     struct json_parser_context_t *parser = json_create_parser(lexer);
 
@@ -1524,7 +1554,7 @@ union json_t json_string(const char *input_text) {
 
 union json_t json_load(FILE *f) {
     if (!f) {
-        fprintf(stderr, "Error: Could not open file\n");
+        JSON_LOG_WARNING("NULL file pointer");
         return JSON_MISSING;
     }
 
@@ -1534,7 +1564,7 @@ union json_t json_load(FILE *f) {
 
     char *file_content = (char *)malloc(file_size + 1);
     if (!file_content) {
-        fprintf(stderr, "Error: Memory allocation failed\n");
+        JSON_LOG_ERROR("Memory allocation failed");
         fclose(f);
         return JSON_MISSING;
     }
@@ -1542,7 +1572,7 @@ union json_t json_load(FILE *f) {
     fread(file_content, 1, file_size, f);
     file_content[file_size] = '\0';
 
-    union json_t j = json_string(file_content);
+    union json_t j = json_deserialize(file_content);
     free(file_content);
     return j;
 }
@@ -1550,7 +1580,7 @@ union json_t json_load(FILE *f) {
 union json_t json_file(const char *file_path) {
     FILE *f = fopen(file_path, "r");
     if (!f) {
-        fprintf(stderr, "Error: Could not open file %s\n", file_path);
+        JSON_LOG_WARNING("Could not open file: %s", file_path);
         return JSON_MISSING;
     }
 

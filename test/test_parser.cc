@@ -34,7 +34,7 @@ TEST(JsonParserTest, LoadJsonString) {
     const char *data = "{ \"A\" : 1, \"B\" : \"2\" }";
 
     /* Act */
-    union json_t j = json_string(data);
+    union json_t j = json_deserialize(data);
 
     /* Assert */
     EXPECT_EQ(JT_OBJECT, j.type);
@@ -109,7 +109,7 @@ TEST(JsonParserTest, ParseNestedArray) {
     const char *data = "[ true, false, null, [ \"1\", \"2\" ], [ ], { } ]";
 
     /* Act */
-    union json_t j = json_string(data);
+    union json_t j = json_deserialize(data);
 
     /* Assert */
     EXPECT_EQ(JT_ARRAY, j.type);
@@ -137,7 +137,7 @@ TEST(JsonParserTest, ParseNestedObject) {
     const char *data = "{ \"A\" : 1, \"B\" : { \"C\" : 2, \"D\" : \"3\" }, \"E\" : { }, \"F\" : [ ] }";
 
     /* Act */
-    union json_t j = json_string(data);
+    union json_t j = json_deserialize(data);
 
     /* Assert */
     EXPECT_EQ(JT_OBJECT, j.type);

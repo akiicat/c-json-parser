@@ -355,14 +355,14 @@ int main() {
 
 Union JSON can load JSON data from various sources: strings, file pointers, or file paths.
 
-### From a String: `json_string()`
+### From a String: `json_deserialize()`
 
 ```c
 #include "json.h"
 
 int main() {
     const char *data = "[\"apple\", \"banana\", \"orange\", \"peach\"]";
-    union json_t j = json_string(data);
+    union json_t j = json_deserialize(data);
     json_print(j); // Outputs: ["apple", "banana", "orange", "peach"]
     return 0;
 }

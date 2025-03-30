@@ -53,6 +53,8 @@
 
 void obj_test() {
 
+    JSON_CURRENT_LOG_LEVEL = JSON_LOG_LEVEL_ERROR;
+
     union json_t obj = JSON_OBJECT;
 
     json_set(&obj, "Name", "BBB");

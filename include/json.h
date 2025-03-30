@@ -8,6 +8,26 @@
 #include <stdint.h>
 #include <stdio.h>
 
+// Log levels
+enum json_log_level {
+    JSON_LOG_LEVEL_DEBUG,
+    JSON_LOG_LEVEL_INFO,
+    JSON_LOG_LEVEL_WARNING,
+    JSON_LOG_LEVEL_ERROR,
+    JSON_LOG_LEVEL_FATAL
+};
+
+extern enum json_log_level JSON_CURRENT_LOG_LEVEL;
+
+// Macros for easier usage
+#define JSON_LOG_DEBUG(...)   json_log_message(JSON_LOG_LEVEL_DEBUG, __FILE__, __func__, __LINE__, __VA_ARGS__)
+#define JSON_LOG_INFO(...)    json_log_message(JSON_LOG_LEVEL_INFO, __FILE__, __func__, __LINE__, __VA_ARGS__)
+#define JSON_LOG_WARNING(...) json_log_message(JSON_LOG_LEVEL_WARNING, __FILE__, __func__, __LINE__, __VA_ARGS__)
+#define JSON_LOG_ERROR(...)   json_log_message(JSON_LOG_LEVEL_ERROR, __FILE__, __func__, __LINE__, __VA_ARGS__)
+#define JSON_LOG_FATAL(...)   json_log_message(JSON_LOG_LEVEL_FATAL, __FILE__, __func__, __LINE__, __VA_ARGS__)
+
+void json_log_message(enum json_log_level level, const char *file, const char *func, int line, const char *fmt, ...);
+
 // --------------------------------------------------
 //                  JSON TOKEN
 // --------------------------------------------------
@@ -77,18 +97,6 @@ typedef union json_t {
             FLOAT_TYPE f;
         };
     };
-#define m_text tok.text
-#define m_bool tok.boolean
-#define m_i8 tok.i8
-#define m_i16 tok.i16
-#define m_i32 tok.i32
-#define m_i64 tok.i64
-#define m_u8 tok.u8
-#define m_u16 tok.u16
-#define m_u32 tok.u32
-#define m_u64 tok.u64
-#define m_f32 tok.f32
-#define m_f64 tok.f64
 } json_t;
 
 struct json_pair_t {
@@ -483,7 +491,7 @@ struct json_parser_context_t *json_create_parser(struct json_lexer_context_t *le
 void json_delete_parser(struct json_parser_context_t *ctx);
 void json_parse(struct json_parser_context_t *ctx);
 
-union json_t json_string(const char *input_text);
+union json_t json_deserialize(const char *input_text);
 union json_t json_load(FILE *f);
 union json_t json_file(const char *file_path);
 // --------------------------------------------------

@@ -266,8 +266,7 @@ void jsonext_obj_insert(union json_t *j, struct json_pair_t *pair) {
     if (!j->obj.pairs) {
         j->obj.pairs = hashmap_new(HASHMAP_MIN_SIZE);
     }
-    bool put_res = hashmap_put(j->obj.pairs, key, pair);
-    printf("%s:%d result=%d\n", __FUNCTION__, __LINE__, put_res);
+    hashmap_put(j->obj.pairs, key, pair);
 }
 
 struct json_pair_t *jsonext_obj_get(union json_t *j, const char *key) {
