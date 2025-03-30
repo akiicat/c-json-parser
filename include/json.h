@@ -7,7 +7,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
-void print_trace();
+
 // --------------------------------------------------
 //                  JSON TOKEN
 // --------------------------------------------------

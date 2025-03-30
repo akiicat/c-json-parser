@@ -12,7 +12,7 @@
 
 #define UNUSED(x) ((void)(x))
 
-void print_trace(void) {
+void json_print_trace(void) {
     void *array[10];
     char **strings;
     int size, i;
@@ -119,7 +119,7 @@ union json_t json_dup(union json_t j) {
     }
     default:
         fprintf(stderr, "%s: unsupport token <%d|%s>", __func__, j.type, json_type2str(j.type));
-        print_trace();
+        json_print_trace();
         break;
     }
 
@@ -142,10 +142,10 @@ size_t json_capacity(union json_t j) {
     return 0;
 }
 
-// Assume these types and functions are defined elsewhere:
-// union json_t, jsonext_arr_length(), jsonext_arr_get(), jsonext_obj_length(),
+// Assume these functions are defined elsewhere:
+// jsonext_arr_length(), jsonext_arr_get(), jsonext_obj_length(),
 // jsonext_obj_iter_first(), jsonext_obj_iter_next(), json_type2str(),
-// print_trace(). Also assume the json_t union has a field 'type' and a member
+// json_print_trace(). Also assume the json_t union has a field 'type' and a member
 // 'tok' with subfields appropriate to each JSON type (e.g., text, boolean, u64, f).
 
 // A simple string builder structure.
@@ -301,7 +301,7 @@ static void json_dumps_internal(union json_t j, int offset, int indent, struct s
         break;
     default:
         fprintf(stderr, "Error: Print Token Not found <%d|%s>\n", j.type, json_type2str(j.type));
-        print_trace();
+        json_print_trace();
         assert(0);
     }
 }
@@ -403,7 +403,7 @@ static void json_print_internal(union json_t j, int offset, int indent, FILE *fp
     }
     default:
         fprintf(stderr, "Error: Print Token Not found <%d|%s>\n", j.type, json_type2str(j.type));
-        print_trace();
+        json_print_trace();
         assert(0);
     }
 }
@@ -941,7 +941,7 @@ void json_delete_lexer(struct json_lexer_context_t *ctx) {
 static int next_char(struct json_lexer_context_t *ctx) {
     if (!ctx->from_string) {
         fprintf(stderr, "No streaming input\n");
-        print_trace();
+        json_print_trace();
         assert(0);
     }
 
@@ -973,7 +973,7 @@ static void match(struct json_lexer_context_t *ctx, int c) {
 
     if (cur != c) {
         fprintf(stderr, "Syntax Error %lu:%lu: Unexpected Char: %c\n", ctx->row, ctx->column, cur);
-        print_trace();
+        json_print_trace();
         assert(0);
     }
 }
@@ -1014,7 +1014,7 @@ static void insert_token(struct json_lexer_context_t *ctx, struct json_lexer_tok
 
     if (!tokens) {
         fprintf(stderr, "Error Token Container is not initialized\n");
-        print_trace();
+        json_print_trace();
         assert(0);
     }
 
@@ -1375,7 +1375,7 @@ static void match_token(struct json_parser_context_t *ctx, enum json_lexer_token
 
     if (index >= ctx->lexer->tokens.length) {
         fprintf(stderr, "Invalid Token Index: %lu expect <%d|%s>\n", index, t, json_lexer_type2str(t));
-        print_trace();
+        json_print_trace();
         assert(0);
     }
 
@@ -1383,7 +1383,7 @@ static void match_token(struct json_parser_context_t *ctx, enum json_lexer_token
         fprintf(stderr, "Syntax Error: Unexpected Token at Token Index %lu: <%d|%s> expect <%d|%s>\n", index,
                 ctx->lexer->tokens.list[index].type, json_lexer_type2str(ctx->lexer->tokens.list[index].type), t,
                 json_lexer_type2str(t));
-        print_trace();
+        json_print_trace();
         assert(0);
     }
 }
@@ -1438,7 +1438,7 @@ static union json_t value_rule(struct json_parser_context_t *ctx) {
         token_p = current_token(ctx);
         fprintf(stderr, "Syntax Error: Unexpected Token at Token Index %lu: <%d|%s>\n", ctx->token_index, token_p->type,
                 json_lexer_type2str(token_p->type));
-        print_trace();
+        json_print_trace();
         assert(0);
         // Syntax Error: Unexpected Token
     }
