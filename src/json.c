@@ -14,7 +14,7 @@
 #define UNUSED(x) ((void)(x))
 
 // Current log level threshold
-enum json_log_level JSON_CURRENT_LOG_LEVEL = JSON_LOG_LEVEL_DEBUG;
+enum json_log_level JSON_CURRENT_LOG_LEVEL = JSON_LOG_LEVEL_WARNING;
 
 static const char* get_level_str(enum json_log_level level) {
     switch (level) {
@@ -55,9 +55,9 @@ void json_print_trace(void) {
     strings = backtrace_symbols(array, size);
     if (strings != NULL) {
 
-        JSON_LOG_ERROR("Obtained %d stack frames.\n", size);
+        JSON_LOG_ERROR("Obtained %d stack frames.", size);
         for (i = 0; i < size; i++)
-            JSON_LOG_ERROR("%s\n", strings[i]);
+            JSON_LOG_ERROR("%s", strings[i]);
     }
 
     free(strings);
@@ -145,7 +145,7 @@ union json_t json_dup(union json_t j) {
         }
 
         if (i != jsonext_obj_length(&j)) {
-            JSON_LOG_WARNING("Json Duplicate Sanity Check Fail: type=%s key=%s\n", json_type2str(j.type),
+            JSON_LOG_WARNING("Json Duplicate Sanity Check Fail: type=%s key=%s", json_type2str(j.type),
                    it->key);
         }
 
@@ -912,7 +912,6 @@ const char *json_lexer_type2str(enum json_lexer_token_type_t type) {
 struct json_lexer_context_t *json_create_lexer(const char *str) {
     struct json_lexer_context_t *ctx_p = (struct json_lexer_context_t *)malloc(sizeof(struct json_lexer_context_t));
 
-
     struct json_lexer_context_t ctx = {
         .tokens =
             {
@@ -1043,7 +1042,7 @@ static void insert_token(struct json_lexer_context_t *ctx, struct json_lexer_tok
     size_t newSize = 0;
 
     if (!tokens) {
-        JSON_LOG_ERROR("Error Token Container is not initialized\n");
+        JSON_LOG_ERROR("Error Token Container is not initialized");
         json_print_trace();
         assert(0);
     }
