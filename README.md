@@ -32,13 +32,68 @@ Union JSON is a lightweight and extendable JSON library written in C. It provide
 
 ### Installation
 
-Simply include the header file in your project:
+#### Manual Installation
 
-```c
-#include "json.h"
+Download the ZIP or clone the repository using Git:
+
+```sh
+git clone https://github.com/akiicat/unionJson.git
 ```
 
-Ensure that you have the source code of Union JSON in your project directory or installed in your include path.
+Then include the main header file in your project:
+
+```c
+#include <json.h>
+```
+
+Ensure the Union JSON source code is either present in your project directory or available in your include path.
+
+Since the underlying implementations of JSON Array and JSON Object are modular, you must choose which ones to use. For example, you can use a linear probing hash map for JSON Objects and a dynamic array for JSON Arrays.
+
+When compiling, provide `-g -rdynamic` for debugging:
+
+```sh
+gcc -g -rdynamic -I./include \
+    src/json.c \
+    src/obj_hash_linear_probing.c \
+    src/arr_dynamic_array.c \
+    <your_progam>.c
+```
+
+#### Build from Source
+
+Use Meson to build and install the library:
+
+```
+meson setup build --prefix=/usr/local
+meson compile -C build
+sudo meson install -C build
+```
+
+After installation, the directory structure will look like this:
+
+```sh
+<prefix>/
+├── include
+│   ├── json.h
+│   └── json.hh
+└── lib
+    └── x86_64-linux-gnu
+        ├── libunionjson.a
+        └── libunionjson.so
+```
+
+Then you can build and run the program like this:
+
+```sh
+# Shared Library
+gcc -I/usr/local/include -L/usr/local/lib/x86_64-linux-gnu -o main main.c -lunionjson
+LD_LIBRARY_PATH=/usr/local/lib/x86_64-linux-gnu ./main
+
+# Static Library
+gcc -I/usr/local/include -L/usr/local/lib/x86_64-linux-gnu -static -o main main.c -lunionjson
+./main
+```
 
 ## Basic Usage
 

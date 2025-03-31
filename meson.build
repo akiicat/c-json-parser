@@ -1,4 +1,4 @@
-project('my_project', ['c', 'cpp'],
+project('unionjson', ['c', 'cpp'],
   version: '0.1.0',
   default_options: ['warning_level=3', 'c_std=c11', 'cpp_std=c++11']
 )
@@ -19,7 +19,8 @@ lib_sources = [
   'src/obj_hash_linear_probing.c',
   'src/arr_dynamic_array.c'
 ]
-mylib = static_library('mylib', lib_sources, include_directories: inc)
+static_lib = static_library('unionjson', lib_sources, install: true, include_directories: inc)
+shared_lib = shared_library('unionjson', lib_sources, install: true, include_directories: inc)
 
 # ---------------------------------------------------------------------------
 # Build the Main Application
@@ -27,7 +28,7 @@ mylib = static_library('mylib', lib_sources, include_directories: inc)
 # main.c is the application entry point. Link it with the library.
 app = executable('hello', 'main.c',
   include_directories: inc,
-  link_with: mylib
+  link_with: static_lib
 )
 
 # ---------------------------------------------------------------------------
@@ -50,7 +51,7 @@ if not get_option('disable_tests')
   test_exe = executable('json_gtest', test_sources,
     include_directories: inc,
     dependencies: [gtest_dep, gmock_dep],
-    link_with: mylib,
+    link_with: static_lib,
     cpp_args: ['-pthread', '-fsanitize=leak,address,undefined', '-std=c++20'],  # Required on many systems for threading support
     link_args: ['-fsanitize=leak,address,undefined'],
   )
@@ -58,3 +59,12 @@ if not get_option('disable_tests')
   # Register the test with Meson.
   test('json_gtest', test_exe)
 endif
+
+# ---------------------------------------------------------------------------
+# Install
+# ---------------------------------------------------------------------------
+
+install_headers(
+  'include/json.h',
+  'include/json.hh'
+)
